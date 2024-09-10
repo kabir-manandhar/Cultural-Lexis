@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "cultural-lexis"
+version = "0.1.0"
+description = "Large Language Models adapting towards Cultures"
+authors = ["Chunhua and Kabir"]
+license = "MIT License"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
