@@ -53,6 +53,8 @@ cover/
 
 # Slurm Script
 *.slurm
+*cultural-lexis.sh
+*.out
 
 # Translations
 *.mo
