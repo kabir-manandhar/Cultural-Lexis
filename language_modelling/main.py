@@ -12,7 +12,6 @@ def main():
     parser.add_argument('--model_id', type=str, default='meta-llama/Meta-Llama-3.1-8B-Instruct', help='Hugging Face model ID')
     parser.add_argument('--cache_dir', type=str, default='/data/gpfs/projects/punim2219/LM_with_SWOW/kabir/Data/huggingface_cache', help='Cache directory')
     parser.add_argument('--output_file', type=str, default='/data/gpfs/projects/punim2219/LM_with_SWOW/kabir/Data/output/sample_answers.json', help='Output file path')
-    # Removed input_file argument since we're using a list of questions directly
 
     args = parser.parse_args()
 
