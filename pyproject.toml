@@ -16,6 +16,7 @@ polars = "^1.4.1"
 pyarrow = "^17.0.0"
 fastparquet = "^2024.5.0"
 pytest = "^8.3.2"
+datasets = "^3.0.1"
 
 
 

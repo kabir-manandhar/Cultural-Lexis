@@ -3,11 +3,11 @@ from tqdm import tqdm
 from .prompt_utils import create_system_prompt
 import json
 
-def answer_question(question: str, model, tokenizer) -> dict:
+def answer_question(question: str, model, tokenizer,country_name) -> dict:
     """Generates an answer for the given question using the model and tokenizer."""
     
     # Create the system prompt (which is much simpler now)
-    system_prompt = create_system_prompt()
+    system_prompt = create_system_prompt(country_name)
 
     # Construct the message to send to the model
     messages = [
@@ -38,11 +38,11 @@ def answer_question(question: str, model, tokenizer) -> dict:
     # Extract the model's response and decode it
     response = outputs[0][input_ids.shape[-1]:]
     answer = tokenizer.decode(response, skip_special_tokens=True)
-
+    
     # Return the question and the generated answer in a dictionary
     result = {
         "question": question,
-        "answer": answer.strip()
+        "answer": answer
     }
 
     return result
