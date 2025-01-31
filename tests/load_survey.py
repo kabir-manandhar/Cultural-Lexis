@@ -46,7 +46,7 @@ for row in relevant_questions:
         
         # Create an entry for the question metadata
         question_entry = {
-            "question": question_text,
+            "us_question": question_text,
             "us_score": us_score,
             "china_score": china_score
         }
@@ -55,7 +55,7 @@ for row in relevant_questions:
         print(f"Error processing row: {e}")
 
 # Define the output file path
-output_file_path = "/data/gpfs/projects/punim2219/LM_with_SWOW/kabir/Data/WV_Bench/question_metadata.json"
+output_file_path = "/data/gpfs/projects/punim2219/LM_with_SWOW/kabir/Data/WV_Bench/us_question_metadata.json"
 
 # Save the results to a JSON file
 with open(output_file_path, 'w') as f:

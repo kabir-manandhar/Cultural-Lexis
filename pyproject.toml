@@ -17,6 +17,9 @@ pyarrow = "^17.0.0"
 fastparquet = "^2024.5.0"
 pytest = "^8.3.2"
 datasets = "^3.0.1"
+openpyxl = "^3.1.5"
+pymupdf = "^1.25.0"
+vllm = "^0.6.6.post1"
 
 
 
