@@ -4,103 +4,200 @@ from .prompt_utils import create_system_prompt
 import json
 import numpy as np
 from vllm import SamplingParams
+from vllm.sampling_params import GuidedDecodingParams
 
-# Optional: A helper function to process log probabilities from a vLLM response.
-def process_logprobs(response, choices):
+
+def extract_options_from_question(question: str) -> list:
     """
-    Extract and normalize log probabilities for specified choices from a vLLM response.
-    
+    Extracts options from a question string.
+    Assumes options are listed under 'Options:' followed by '- ' for each choice.
+
     Args:
-        response: The response object from vLLM.generate (assumed to have a .logprobs attribute).
-        choices (list): A list of valid choices (as strings) to look for.
-        
+        question (str): The input question string containing options.
+
+    Returns:
+        list: A list of extracted options.
+    """
+    match = re.search(r"Options:\s*\n((?:- .*\n)+)", question)
+    if match:
+        options_text = match.group(1)
+        options = [opt.strip("- ").strip() for opt in options_text.strip().split("\n")]
+        return options
+    else:
+        return []
+
+
+def create_choice_map(options: list) -> dict:
+    """
+    Maps options to numbered choices (1, 2, 3, ...).
+
+    Args:
+        options (list): List of options extracted from the question.
+
+    Returns:
+        dict: Mapping of choice numbers to option text.
+    """
+    return {str(i + 1): option for i, option in enumerate(options)}
+
+
+def build_prompt(question: str, options: list, system_prompt: str) -> str:
+    """
+    Constructs the final prompt with the question and numbered options.
+
+    Args:
+        question (str): The original question.
+        options (list): List of options.
+        system_prompt (str): System prompt for context.
+
+    Returns:
+        str: Formatted prompt for the model.
+    """
+    question_text = question.split("Options:")[0].strip()
+    options_text = "\n".join([f"{i + 1}. {option}" for i, option in enumerate(options)])
+
+    prompt = f"""
+{system_prompt}
+
+{question_text}
+
+Options:
+{options_text}
+
+Please respond only with the option number (1-{len(options)}).
+"""
+    return prompt.strip()
+
+
+def configure_sampling_params(choice_map: dict) -> SamplingParams:
+    """
+    Configures sampling parameters for the model, including guided decoding.
+
+    Args:
+        choice_map (dict): Mapping of choices (e.g., {'1': 'Yes', '2': 'No'}).
+
+    Returns:
+        SamplingParams: Sampling configuration for the LLM.
+    """
+    guided_params = GuidedDecodingParams(choice=list(choice_map.keys()))
+
+    return SamplingParams(
+        guided_decoding=guided_params,
+        max_tokens=1,
+        temperature=0.0,
+        top_p=1.0,
+        logprobs=len(choice_map)
+    )
+
+
+def get_choice_logprobs(token_logprobs, choice_map):
+    """
+    Extracts log probabilities for each choice from the model output.
+
+    Args:
+        token_logprobs (dict): Log probabilities from the LLM response.
+        choice_map (dict): Mapping of choice numbers to options.
+
+    Returns:
+        dict: Log probabilities for each choice.
+    """
+    choice_logprobs = {str(key): float('-inf') for key in choice_map}
+
+    for logprob_obj in token_logprobs.values():
+        decoded_token = logprob_obj.decoded_token.strip()
+        if decoded_token in choice_logprobs:
+            choice_logprobs[decoded_token] = logprob_obj.logprob
+
+    return choice_logprobs
+
+
+def convert_logprobs_to_percentages(choice_logprobs: dict, choice_map: dict) -> dict:
+    """
+    Converts log probabilities to normalized percentages.
+
+    Args:
+        choice_logprobs (dict): Log probabilities for each choice.
+        choice_map (dict): Mapping of choice numbers to options.
+
     Returns:
         dict: Normalized probabilities for each choice.
     """
-    
-    token_logprobs = response.logprobs[0]
-    probs_raw = []
-    
-    # Loop over each expected choice and extract its log probability
-    for choice in choices:
-        for logprob_obj in token_logprobs.values():
-            if logprob_obj.decoded_token == str(choice):
-                probs_raw.append(np.exp(logprob_obj.logprob))
-                break
+    choice_probs = {choice: np.exp(logprob) for choice, logprob in choice_logprobs.items()}
+    total_prob = sum(choice_probs.values())
 
-    total = sum(probs_raw)
-    if total > 0:
-        probs = [p / total for p in probs_raw]
-    else:
-        probs = [0] * len(choices)
-    
-    return dict(zip(choices, probs))
+    return {choice_map[choice]: (prob / total_prob) * 100 for choice, prob in choice_probs.items()}
+
+
+def display_probabilities(normalized_probs: dict):
+    """
+    Displays the choice probabilities in a readable format.
+
+    Args:
+        normalized_probs (dict): Normalized probabilities for each choice.
+    """
+    print("\n📊 Category Probabilities:")
+    for category, prob in normalized_probs.items():
+        print(f"{category}: {prob:.2f}%")
+
 
 def answer_question(question: str, llm, country_name: str) -> dict:
     """
-    Generates an answer for the given question using vLLM.
-    
-    Instead of handling tokenization manually, we construct a plain-text prompt by combining 
-    the system prompt (context) and the user question, and then use vLLM to generate the answer.
-    
+    Generates an answer for the given question using vLLM with multiple-choice options.
+
     Args:
         question (str): The question to answer.
         llm: The vLLM model instance.
-        country_name (str): The country context for which to build the system prompt.
-    
+        country_name (str): The country context for the system prompt.
+
     Returns:
-        dict: A dictionary containing the original question, the generated answer, 
-              and optionally, the processed log probability distribution.
+        dict: A dictionary containing the question, generated answer, and log probabilities.
     """
-    
-    # Create the system prompt using our prompt utility
-    system_prompt = create_system_prompt(country_name)
-    
-    # Build a single prompt by combining the system prompt and user question
-    prompt = f"{system_prompt}\nUser: {question}\nAssistant:"
-    
-    # Optionally, you can configure guided decoding if you want to constrain the output.
-    # For example, if you want to force outputs to be one of a set of predetermined choices,
-    # you can create guided decoding parameters.
-    #
-    # from vllm.sampling_params import GuidedDecodingParams
-    # guided_params = GuidedDecodingParams(choice=["1", "2", "3", "4"]) 
-    # For now, we'll leave guided_params as None:
-    guided_params = None
-    
-    # Set up the sampling parameters for generation.
-    # Adjust max_tokens as needed; here, we allow up to 256 tokens in the generated answer.
-    sampling_params = SamplingParams(
-        guided_decoding=guided_params,
-        max_tokens=256,
-        temperature=0.0,  # Deterministic generation
-        top_p=1.0,
-        logprobs=20  # Request log probabilities for the top 20 tokens
-    )
-    
-    # Generate the answer using vLLM.
-    outputs = llm.generate(
-        prompts=prompt,
-        sampling_params=sampling_params
-    )
-    
-    # Extract the generated answer from the vLLM output.
-    # Here we take the first generated output and strip any extra whitespace.
-    answer = outputs[0].outputs[0].text.strip()
-    
-    # (Optional) If you are using guided decoding for tasks like multiple-choice questions,
-    # you can process the log probabilities to compute the confidence for each allowed choice.
-    # For example, if the valid choices are ["1", "2", "3", "4"]:
+
+    # 1. Extract options from the question
+    options = extract_options_from_question(question)
+    if not options:
+        return {"question": question, "error": "No valid options found."}
+
+    # 2. Create choice map (e.g., {'1': 'Yes', '2': 'No'})
+    choice_map = create_choice_map(options)
+
     breakpoint()
-    # choices = ["1", "2", "3", "4"]
-    # choice_distribution = process_logprobs(outputs[0].outputs[0], choices)
-    #
-    # For the current example, we omit the choice_distribution.
-    
+
+    # 3. Build the prompt for the LLM
+    system_prompt = create_system_prompt(country_name)
+    prompt = build_prompt(question, options, system_prompt)
+
+    # 4. Configure sampling parameters
+    sampling_params = configure_sampling_params(choice_map)
+
+    breakpoint()
+
+    # 5. Generate model response
+    outputs = llm.generate(prompts=prompt, sampling_params=sampling_params)
+    generated_choice = outputs[0].outputs[0].text.strip()
+
+    breakpoint()
+
+    # 6. Collect log probabilities
+    token_logprobs = outputs[0].outputs[0].logprobs[0]
+    choice_logprobs = get_choice_logprobs(token_logprobs, choice_map)
+
+    breakpoint()
+
+    # 7. Convert logprobs to probabilities
+    normalized_probs = convert_logprobs_to_percentages(choice_logprobs, choice_map)
+
+    # 8. Display results
+    display_probabilities(normalized_probs)
+
+    breakpoint()
+
+    # 9. Prepare result dictionary
     result = {
         "question": question,
-        "answer": answer,
-        # "choice_distribution": choice_distribution  # Include this line if applicable
+        "generated_choice": generated_choice,
+        "generated_category": choice_map.get(generated_choice, "Unknown"),
+        "choice_logprobs": choice_logprobs,
+        "normalized_probs": normalized_probs
     }
-    
+
     return result
