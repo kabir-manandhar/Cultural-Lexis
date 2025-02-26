@@ -160,8 +160,6 @@ def answer_question(question: str, llm, country_name: str) -> dict:
     # 2. Create choice map (e.g., {'1': 'Yes', '2': 'No'})
     choice_map = create_choice_map(options)
 
-    breakpoint()
-
     # 3. Build the prompt for the LLM
     system_prompt = create_system_prompt(country_name)
     prompt = build_prompt(question, options, system_prompt)
@@ -182,8 +180,6 @@ def answer_question(question: str, llm, country_name: str) -> dict:
 
     # 8. Display results
     display_probabilities(normalized_probs)
-
-    breakpoint()
 
     # 9. Prepare result dictionary
     result = {

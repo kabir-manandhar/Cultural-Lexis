@@ -7,6 +7,16 @@ from src.q_and_a import answer_question  # Updated function for vLLM usage
 from src.model_utils import load_llm, clear_gpu_memory  # Updated for vLLM; no tokenizer needed
 import pandas as pd
 from tqdm import tqdm
+import logging
+import warnings
+
+# Ignore all warnings
+warnings.filterwarnings("ignore")
+
+# Suppress INFO and WARNING messages from vLLM and other libraries.
+logging.getLogger("vllm").setLevel(logging.ERROR)
+logging.getLogger("transformers").setLevel(logging.ERROR)
+logging.basicConfig(level=logging.ERROR)
 
 def load_questions_from_json(json_file: str):
     """Loads questions from the JSON file."""
