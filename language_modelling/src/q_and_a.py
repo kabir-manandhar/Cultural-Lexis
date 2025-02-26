@@ -169,19 +169,13 @@ def answer_question(question: str, llm, country_name: str) -> dict:
     # 4. Configure sampling parameters
     sampling_params = configure_sampling_params(choice_map)
 
-    breakpoint()
-
     # 5. Generate model response
     outputs = llm.generate(prompts=prompt, sampling_params=sampling_params)
     generated_choice = outputs[0].outputs[0].text.strip()
 
-    breakpoint()
-
     # 6. Collect log probabilities
     token_logprobs = outputs[0].outputs[0].logprobs[0]
     choice_logprobs = get_choice_logprobs(token_logprobs, choice_map)
-
-    breakpoint()
 
     # 7. Convert logprobs to probabilities
     normalized_probs = convert_logprobs_to_percentages(choice_logprobs, choice_map)
