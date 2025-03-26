@@ -8,7 +8,6 @@ from src.model_utils import load_llm, clear_gpu_memory  # Updated for vLLM; no t
 import pandas as pd
 from tqdm import tqdm
 import logging
-import warnings
 
 # Ignore all warnings
 warnings.filterwarnings("ignore")
@@ -18,14 +17,16 @@ logging.getLogger("vllm").setLevel(logging.ERROR)
 logging.getLogger("transformers").setLevel(logging.ERROR)
 logging.basicConfig(level=logging.ERROR)
 
+
 def load_questions_from_json(json_file: str):
     """Loads questions from the JSON file."""
     with open(json_file, 'r') as f:
         data = json.load(f)
-        
+
     # Extract the questions from the JSON structure
     questions = [item['question'] for item in data]
     return questions
+
 
 def main():
     parser = argparse.ArgumentParser(description="Run question answering using vLLM.")
@@ -40,6 +41,9 @@ def main():
     parser.add_argument('--input_file', type=str, default="/data/gpfs/projects/punim2219/LM_with_SWOW/kabir/Data/WV_Bench/us_question_metadata.json", 
                         help='Input JSON file path containing questions')
 
+    parser.add_argument('--use_swow', action='store_true', 
+                    help='Use SWOW-based augmentation for contextual awareness')
+    
     args = parser.parse_args()
 
     # Setup authentication environment variables if applicable.
@@ -50,7 +54,7 @@ def main():
 
     warnings.filterwarnings('ignore')
     clear_gpu_memory()
-    
+
     # Load questions based on country
     if str(args.country_name).lower() == "united states":
         questions = load_questions_from_json(args.input_file)
@@ -60,7 +64,6 @@ def main():
     else:
         raise ValueError("Country not supported. Please use 'United States' or 'China'.")
 
-        
     # Load the vLLM model instance
     llm = load_llm(args.model_path, dtype="bfloat16")
 
@@ -69,11 +72,10 @@ def main():
     # Loop over each question and generate an answer using vLLM
     for question in tqdm(questions):
         try:
-            result = answer_question(question, llm, args.country_name)
-            # Debug breakpoint for inspection (optional)
+            result = answer_question(question, llm, args.country_name, args.use_swow)
         except Exception as e:
             result = {"question": question, "answer": f"Error processing question: {str(e)}"}
-        
+        breakpoint()
         results.append(result)
 
     # Write the results to the specified output file in JSON format
@@ -83,6 +85,7 @@ def main():
     # Clean up resources
     del llm
     clear_gpu_memory()
+
 
 if __name__ == "__main__":
     main()

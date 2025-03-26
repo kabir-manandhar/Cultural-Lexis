@@ -1,10 +1,11 @@
 import re
-from tqdm import tqdm
-from .prompt_utils import create_system_prompt
 import json
 import numpy as np
-from vllm import SamplingParams
+from tqdm import tqdm
+from vllm import SamplingParams, LLM
 from vllm.sampling_params import GuidedDecodingParams
+from .prompt_utils import create_system_prompt
+from .swow_utils import augment_with_swow
 
 
 def extract_options_from_question(question: str) -> list:
@@ -23,8 +24,7 @@ def extract_options_from_question(question: str) -> list:
         options_text = match.group(1)
         options = [opt.strip("- ").strip() for opt in options_text.strip().split("\n")]
         return options
-    else:
-        return []
+    return []
 
 
 def create_choice_map(options: list) -> dict:
@@ -40,22 +40,29 @@ def create_choice_map(options: list) -> dict:
     return {str(i + 1): option for i, option in enumerate(options)}
 
 
-def build_prompt(question: str, options: list, system_prompt: str) -> str:
+def build_prompt(question: str, options: list, system_prompt: str, use_swow: bool, country_name: str, llm: LLM) -> str:
     """
     Constructs the final prompt with the question and numbered options.
+    
+    If `use_swow` is True, the question is augmented with cultural context.
 
     Args:
         question (str): The original question.
         options (list): List of options.
         system_prompt (str): System prompt for context.
+        use_swow (bool): Whether to use SWOW-based augmentation.
+        country_name (str): Country for cultural context.
 
     Returns:
         str: Formatted prompt for the model.
     """
+    if use_swow:
+        question = augment_with_swow(question, country_name, llm)  # Add cultural context
+        
     question_text = question.split("Options:")[0].strip()
     options_text = "\n".join([f"{i + 1}. {option}" for i, option in enumerate(options)])
 
-    prompt = f"""
+    return f"""
 {system_prompt}
 
 {question_text}
@@ -64,8 +71,7 @@ Options:
 {options_text}
 
 Please respond only with the option number (1-{len(options)}).
-"""
-    return prompt.strip()
+""".strip()
 
 
 def configure_sampling_params(choice_map: dict) -> SamplingParams:
@@ -139,7 +145,7 @@ def display_probabilities(normalized_probs: dict):
         print(f"{category}: {prob:.2f}%")
 
 
-def answer_question(question: str, llm, country_name: str) -> dict:
+def answer_question(question: str, llm: LLM, country_name: str, use_swow: bool) -> dict:
     """
     Generates an answer for the given question using vLLM with multiple-choice options.
 
@@ -147,6 +153,7 @@ def answer_question(question: str, llm, country_name: str) -> dict:
         question (str): The question to answer.
         llm: The vLLM model instance.
         country_name (str): The country context for the system prompt.
+        use_swow (bool): Whether to augment the question with SWOW-based cultural context.
 
     Returns:
         dict: A dictionary containing the question, generated answer, and log probabilities.
@@ -162,7 +169,7 @@ def answer_question(question: str, llm, country_name: str) -> dict:
 
     # 3. Build the prompt for the LLM
     system_prompt = create_system_prompt(country_name)
-    prompt = build_prompt(question, options, system_prompt)
+    prompt = build_prompt(question, options, system_prompt, use_swow, country_name, llm)
 
     # 4. Configure sampling parameters
     sampling_params = configure_sampling_params(choice_map)
