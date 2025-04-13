@@ -5,6 +5,11 @@ import json
 import numpy as np
 from vllm import SamplingParams
 from vllm.sampling_params import GuidedDecodingParams
+from src.evaluate import earth_movers_distance 
+from scipy.special import rel_entr
+from scipy.special import kl_div
+# from sklearn.metrics import mutual_info_score
+from scipy.stats import entropy
 
 
 def extract_options_from_question(question: str) -> list:
@@ -40,7 +45,7 @@ def create_choice_map(options: list) -> dict:
     return {str(i + 1): option for i, option in enumerate(options)}
 
 
-def build_prompt(question: str, options: list, system_prompt: str) -> str:
+def build_prompt(question: str, options: dict, system_prompt: str) -> str:
     """
     Constructs the final prompt with the question and numbered options.
 
@@ -53,7 +58,10 @@ def build_prompt(question: str, options: list, system_prompt: str) -> str:
         str: Formatted prompt for the model.
     """
     question_text = question.split("Options:")[0].strip()
-    options_text = "\n".join([f"{i + 1}. {option}" for i, option in enumerate(options)])
+
+    # options_text = "\n".join([f"{i + 1}. {option}" for i, option in enumerate(options)])
+    options_text = ', '.join([f"{key}: {value}" for key, value in options.items()])
+
 
     prompt = f"""
 {system_prompt}
@@ -100,7 +108,7 @@ def get_choice_logprobs(token_logprobs, choice_map):
     Returns:
         dict: Log probabilities for each choice.
     """
-    choice_logprobs = {str(key): float('-inf') for key in choice_map}
+    choice_logprobs = {str(key): float('-inf') for key in choice_map.keys()}
 
     for logprob_obj in token_logprobs.values():
         decoded_token = logprob_obj.decoded_token.strip()
@@ -124,7 +132,12 @@ def convert_logprobs_to_percentages(choice_logprobs: dict, choice_map: dict) -> 
     choice_probs = {choice: np.exp(logprob) for choice, logprob in choice_logprobs.items()}
     total_prob = sum(choice_probs.values())
 
-    return {choice_map[choice]: (prob / total_prob) * 100 for choice, prob in choice_probs.items()}
+    # return {choice_map[choice]: (prob / total_prob) * 100 for choice, prob in choice_probs.items()}
+    choice_content_logprobs = {choice_map[choice]: (prob / total_prob)  for choice, prob in choice_probs.items()}
+
+    choice_logprobs_normalized = {choice: (prob / total_prob)  for choice, prob in choice_probs.items()}
+
+    return choice_logprobs_normalized, choice_content_logprobs
 
 
 def display_probabilities(normalized_probs: dict):
@@ -136,10 +149,11 @@ def display_probabilities(normalized_probs: dict):
     """
     print("\n📊 Category Probabilities:")
     for category, prob in normalized_probs.items():
+        prob = prob*100
         print(f"{category}: {prob:.2f}%")
 
 
-def answer_question(question: str, llm, country_name: str) -> dict:
+def answer_question(question: str, llm, country_name: str, gt_answer: list, choice_map: dict) -> dict:
     """
     Generates an answer for the given question using vLLM with multiple-choice options.
 
@@ -152,17 +166,19 @@ def answer_question(question: str, llm, country_name: str) -> dict:
         dict: A dictionary containing the question, generated answer, and log probabilities.
     """
 
-    # 1. Extract options from the question
-    options = extract_options_from_question(question)
-    if not options:
-        return {"question": question, "error": "No valid options found."}
+    #1. Get the choie map 
+    if choice_map is None: 
+        # 1. Extract options from the question
+        options = extract_options_from_question(question)
+        if not options:
+            return {"question": question, "error": "No valid options found."}
 
-    # 2. Create choice map (e.g., {'1': 'Yes', '2': 'No'})
-    choice_map = create_choice_map(options)
+        # 2. Create choice map (e.g., {'1': 'Yes', '2': 'No'})
+        choice_map = create_choice_map(options)
 
     # 3. Build the prompt for the LLM
     system_prompt = create_system_prompt(country_name)
-    prompt = build_prompt(question, options, system_prompt)
+    prompt = build_prompt(question, options=choice_map, system_prompt=system_prompt)
 
     # 4. Configure sampling parameters
     sampling_params = configure_sampling_params(choice_map)
@@ -176,18 +192,92 @@ def answer_question(question: str, llm, country_name: str) -> dict:
     choice_logprobs = get_choice_logprobs(token_logprobs, choice_map)
 
     # 7. Convert logprobs to probabilities
-    normalized_probs = convert_logprobs_to_percentages(choice_logprobs, choice_map)
-
+    choice_logprobs_normalized, choice_logprobs_normalized_content = convert_logprobs_to_percentages(choice_logprobs, choice_map)
+    # normalized_probs = convert_logprobs_to_percentages(choice_logprobs, choice_map)
+    
     # 8. Display results
-    display_probabilities(normalized_probs)
+    display_probabilities(choice_logprobs_normalized_content)
+    # breakpoint()
 
-    # 9. Prepare result dictionary
+    # 9. Evaluate the results 
+    # Check if they have the same keys
+    keys_match = set(choice_logprobs_normalized.keys()) == set(gt_answer.keys())
+
+    # If keys match, get aligned values
+    if keys_match:
+        choice_values, gt_values = zip(*[(choice_logprobs_normalized[k], gt_answer[k]) for k in gt_answer])
+    else:
+        print("Warning: Dictionaries have different keys")
+        # Get values only for shared keys
+        shared_keys = set(choice_logprobs_normalized.keys()) & set(gt_answer.keys())
+        choice_values, gt_values = zip(*[(choice_logprobs_normalized[k], gt_answer[k]) for k in shared_keys])
+        
+    # em_score = earth_movers_distance(list(gt_answer.values()), list(choice_logprobs_normalized_content.values())) #TODO: make the keys of the two dicts the same, ensuring the order of values are the same
+    em_score = earth_movers_distance(gt_values, choice_values)
+    print("== EM_SCORE", em_score)
+    
+    # Calculate KL divergence
+    # Convert to numpy arrays and add small epsilon to avoid zeros in log calculation
+    # breakpoint()
+    # epsilon = 1e-10
+    # gt_array = np.array(gt_values) + epsilon
+    # choice_array = np.array(choice_values) + epsilon
+
+    # # Calculate and print metrics
+    # kl_gt_to_pred = entropy(gt_array, choice_array)
+    # kl_pred_to_gt = entropy(choice_array, gt_array)
+
+    # m_array = 0.5 * (gt_array + choice_array)
+    # js_div = 0.5 * (entropy(gt_array, m_array) + entropy(choice_array, m_array))
+
+    
+    # gt_array = np.array(gt_values, dtype=np.float64)  # Ensure float64 for precision
+    # choice_array = np.array(choice_values, dtype=np.float64)
+
+    # # Better epsilon handling
+    # epsilon = 1e-10
+    # nonzero_mask = (gt_array <= 0) | (choice_array <= 0)
+    # if np.any(nonzero_mask):
+    #     # Replace zeros safely
+    #     gt_array = np.maximum(gt_array, epsilon)
+    #     choice_array = np.maximum(choice_array, epsilon)
+        
+    #     # Re-normalize after adding epsilon
+    #     gt_array = gt_array / np.sum(gt_array)
+    #     choice_array = choice_array / np.sum(choice_array)
+
+    # try:
+    #     # Calculate metrics with error checking
+    #     kl_gt_to_pred = entropy(gt_array, choice_array)
+    #     kl_pred_to_gt = entropy(choice_array, gt_array)
+        
+    #     # Calculate Jensen-Shannon divergence
+    #     m_array = 0.5 * (gt_array + choice_array)
+    #     js_div = 0.5 * (entropy(gt_array, m_array) + entropy(choice_array, m_array))
+        
+    #     print(f"EM: {em_score:.4f}, KL(GT→Pred): {kl_gt_to_pred:.4f}, " 
+    #         f"KL(Pred→GT): {kl_pred_to_gt:.4f}, JS: {js_div:.4f}")
+    # except Exception as e:
+    #     print(f"Error in entropy calculation: {e}")
+    #     print(f"gt_array: {gt_array}")
+    #     print(f"choice_array: {choice_array}")
+    # # breakpoint()
+
+
+    # 10. Prepare result dictionary
     result = {
         "question": question,
+        "survey_scores": gt_answer,
         "generated_choice": generated_choice,
         "generated_category": choice_map.get(generated_choice, "Unknown"),
         "choice_logprobs": choice_logprobs,
-        "normalized_probs": normalized_probs
+        "choice_values": choice_values,
+        "gt_values": gt_values,
+        "choice_logprobs_normalized_content": choice_logprobs_normalized_content,
+        "earth_mover_distance": em_score,
+        # "kl_gt_to_pred": kl_gt_to_pred, 
+        # "kl_pred_to_gt": kl_pred_to_gt, 
+        # "jensen_shannon_divergence": js_div
     }
 
     return result

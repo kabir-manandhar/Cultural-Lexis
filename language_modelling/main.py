@@ -9,6 +9,7 @@ import pandas as pd
 from tqdm import tqdm
 import logging
 import warnings
+import statistics
 
 # Ignore all warnings
 warnings.filterwarnings("ignore")
@@ -18,18 +19,42 @@ logging.getLogger("vllm").setLevel(logging.ERROR)
 logging.getLogger("transformers").setLevel(logging.ERROR)
 logging.basicConfig(level=logging.ERROR)
 
-def load_questions_from_json(json_file: str):
+def load_questions_from_json(json_file: str, question_key: str):
     """Loads questions from the JSON file."""
-    with open(json_file, 'r') as f:
+    with open(json_file, 'r', encoding='utf-8') as f:
         data = json.load(f)
         
     # Extract the questions from the JSON structure
-    questions = [item['question'] for item in data]
+    questions = [item[question_key] for item in data]
     return questions
+
+def load_answers_from_json(json_file: str, gt_key: str):
+    """Loads questions from the JSON file.
+    specify the column of the ground truth answer key: us_score, china_score 
+    """
+    with open(json_file, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+        
+    # Extract the questions from the JSON structure
+    questions = [item[gt_key] for item in data]
+    return questions
+
+def load_choie_maps_from_json(json_file: str, key: str):
+    """Loads questions from the JSON file.
+    specify the column of the ground truth answer key: us_score, china_score 
+    """
+    with open(json_file, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+        
+    # Extract the questions from the JSON structure
+    questions = [item[key] for item in data]
+    return questions
+
 
 def main():
     parser = argparse.ArgumentParser(description="Run question answering using vLLM.")
-    parser.add_argument('--model_path', type=str, default='/data/gpfs/projects/punim2219/chunhua/cache_dir/Meta-Llama-3.1-8B-Instruct/', 
+    # parser.add_argument('--model_path', type=str, default='/data/gpfs/projects/punim2219/chunhua/cache_dir/Meta-Llama-3.1-8B-Instruct/',
+    parser.add_argument('--model_path', type=str, default='/data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/llama3/swow_en/lora_combined/',
                         help='Path to the vLLM model directory')
     parser.add_argument('--cache_dir', type=str, default='/data/gpfs/projects/punim2219/LM_with_SWOW/kabir/Data/huggingface_cache', 
                         help='Cache directory')
@@ -37,9 +62,10 @@ def main():
                         help='Output file path')
     parser.add_argument('--country_name', type=str, default='United States', 
                         help='Country context (e.g., "United States" or "China")')
-    parser.add_argument('--input_file', type=str, default="/data/gpfs/projects/punim2219/LM_with_SWOW/kabir/Data/WV_Bench/us_question_metadata.json", 
-                        help='Input JSON file path containing questions')
-
+    # parser.add_argument('--input_file', type=str, default="/data/gpfs/projects/punim2219/LM_with_SWOW/kabir/Data/WV_Bench/us_question_metadata.json", 
+                        # help='Input JSON file path containing questions')
+    parser.add_argument('--input_file', type=str, default="/data/gpfs/projects/punim2219/LM_with_SWOW/kabir/Data/WV_Bench/question_answer.json", help='Input JSON file path containing questions')
+               
     args = parser.parse_args()
 
     # Setup authentication environment variables if applicable.
@@ -53,33 +79,49 @@ def main():
     
     # Load questions based on country
     if str(args.country_name).lower() == "united states":
-        questions = load_questions_from_json(args.input_file)
+        questions = load_questions_from_json(args.input_file, question_key='question_instruction')
+        choice_maps = load_choie_maps_from_json(args.input_file, key="choices")
     elif str(args.country_name).lower() == "china":
-        df = pd.read_excel("/data/gpfs/projects/punim2219/LM_with_SWOW/kabir/Data/WV_Bench/WVS_Question_ZH_EN 1.xlsx")
-        questions = [f"{row['question_zh']} Options: {row['options_zh']}" for _, row in df.iterrows()]
+        # df = pd.read_excel("/data/gpfs/projects/punim2219/LM_with_SWOW/kabir/Data/WV_Bench/WVS_Question_ZH_EN 1.xlsx")
+        # questions = [f"{row['question_zh']} Options: {row['options_zh']}" for _, row in df.iterrows()]
+        questions = load_questions_from_json(args.input_file, question_key='question_instruction_zh')
+        choice_maps = load_choie_maps_from_json(args.input_file, key="choices_zh")
     else:
         raise ValueError("Country not supported. Please use 'United States' or 'China'.")
 
-        
+    country_name_to_gt_key = {"United States": "us_score", "China": "china_score"}
+    gt_answers = load_answers_from_json(args.input_file, country_name_to_gt_key.get(args.country_name, "Invalid Country"))
+    
+    
+    
     # Load the vLLM model instance
     llm = load_llm(args.model_path, dtype="bfloat16")
 
     results = []
 
     # Loop over each question and generate an answer using vLLM
-    for question in tqdm(questions):
+    for question, gt_answer, choice_map in tqdm(zip(questions, gt_answers, choice_maps)):
         try:
-            result = answer_question(question, llm, args.country_name)
+            result = answer_question(question, llm, args.country_name, gt_answer, choice_map)
             # Debug breakpoint for inspection (optional)
         except Exception as e:
             result = {"question": question, "answer": f"Error processing question: {str(e)}"}
-        
+        # breakpoint()
         results.append(result)
 
     # Write the results to the specified output file in JSON format
-    with open(args.output_file, 'w') as f:
+    with open(args.output_file, 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=4)
+    print(f"Resuls are saved at: {args.output_file}")
 
+    # breakpoint()
+    # mean_em_score = statistics.mean([item['em_score'] for item in results])
+    missing_indices = [i for i, item in enumerate(results) if 'earth_mover_distance' not in item]
+    mean_em_score = sum(item['earth_mover_distance'] for i, item in enumerate(results) if i not in missing_indices) / (len(results) - len(missing_indices)) if len(results) > len(missing_indices) else float('nan')
+
+    print(f"### Overall earth movers distance: {mean_em_score}")
+
+    # breakpoint()
     # Clean up resources
     del llm
     clear_gpu_memory()

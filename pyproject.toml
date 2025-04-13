@@ -20,6 +20,7 @@ datasets = "^3.0.1"
 openpyxl = "^3.1.5"
 pymupdf = "^1.25.0"
 vllm = "^0.6.6.post1"
+scipy = "^1.15.2"
 
 
 
