@@ -71,7 +71,6 @@ def extract_keywords_with_llm(question: str, options:str, llm: LLM) -> list:
         top_p=1.0
     )
     
-    breakpoint()
 
     outputs = llm.generate([prompt], sampling_params=sampling_params)
     keyword_string = outputs[0].outputs[0].text.strip()

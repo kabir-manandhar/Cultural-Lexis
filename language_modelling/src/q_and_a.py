@@ -179,7 +179,6 @@ def answer_question(question: str, llm: LLM, country_name: str, use_swow: bool) 
 
     # 5. Generate model response
     outputs = llm.generate(prompts=prompt, sampling_params=sampling_params)
-    breakpoint()
     generated_choice = outputs[0].outputs[0].text.strip()
 
     # 6. Collect log probabilities

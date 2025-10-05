@@ -75,11 +75,9 @@ def main():
     # Loop over each question and generate an answer using vLLM
     for question in tqdm(questions):
         try:
-            breakpoint()
             result = answer_question(question, llm, args.country_name, args.use_swow)
         except Exception as e:
             result = {"question": question, "answer": f"Error processing question: {str(e)}"}
-        breakpoint()
         results.append(result)
 
     # Write the results to the specified output file in JSON format
