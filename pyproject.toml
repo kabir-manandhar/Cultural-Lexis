@@ -5,6 +5,8 @@ description = "Large Language Models adapting towards Cultures"
 authors = ["Chunhua and Kabir"]
 license = "MIT License"
 readme = "README.md"
+packages = [{ include = "language_modelling" }]
+
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"  # Instead of <4.0
@@ -27,7 +29,11 @@ statsmodels = "^0.14.5"
 seaborn = "^0.13.2"
 plotly = "^6.2.0"
 peft = "^0.17.1"
+typer = "^0.19.2"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+align = "language_modelling.main:app"
