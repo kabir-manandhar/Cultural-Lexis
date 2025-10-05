@@ -1,5 +1,8 @@
 import re
 import json
+import os 
+os.environ["VLLM_DISABLE_USAGE_STATS"] = "1"
+os.environ["VLLM_REPORT_USAGE"] = "false"
 import numpy as np
 from tqdm import tqdm
 from vllm import SamplingParams, LLM
@@ -176,6 +179,7 @@ def answer_question(question: str, llm: LLM, country_name: str, use_swow: bool) 
 
     # 5. Generate model response
     outputs = llm.generate(prompts=prompt, sampling_params=sampling_params)
+    breakpoint()
     generated_choice = outputs[0].outputs[0].text.strip()
 
     # 6. Collect log probabilities

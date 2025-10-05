@@ -2,6 +2,8 @@ import argparse
 import warnings
 import json
 import os
+os.environ["VLLM_DISABLE_USAGE_STATS"] = "1"
+os.environ["VLLM_REPORT_USAGE"] = "false"
 from config.hf_auth import get_hf_auth_token
 from src.q_and_a import answer_question  # Updated function for vLLM usage
 from src.model_utils import load_llm, clear_gpu_memory  # Updated for vLLM; no tokenizer needed
@@ -9,13 +11,14 @@ import pandas as pd
 from tqdm import tqdm
 import logging
 
-# Ignore all warnings
-warnings.filterwarnings("ignore")
 
-# Suppress INFO and WARNING messages from vLLM and other libraries.
-logging.getLogger("vllm").setLevel(logging.ERROR)
-logging.getLogger("transformers").setLevel(logging.ERROR)
-logging.basicConfig(level=logging.ERROR)
+# # Ignore all warnings
+# warnings.filterwarnings("ignore")
+
+# # Suppress INFO and WARNING messages from vLLM and other libraries.
+# logging.getLogger("vllm").setLevel(logging.ERROR)
+# logging.getLogger("transformers").setLevel(logging.ERROR)
+# logging.basicConfig(level=logging.ERROR)
 
 
 def load_questions_from_json(json_file: str):
@@ -66,12 +69,13 @@ def main():
 
     # Load the vLLM model instance
     llm = load_llm(args.model_path, dtype="bfloat16")
-
+    
     results = []
 
     # Loop over each question and generate an answer using vLLM
     for question in tqdm(questions):
         try:
+            breakpoint()
             result = answer_question(question, llm, args.country_name, args.use_swow)
         except Exception as e:
             result = {"question": question, "answer": f"Error processing question: {str(e)}"}

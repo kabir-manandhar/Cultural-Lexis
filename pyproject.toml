@@ -21,8 +21,12 @@ openpyxl = "^3.1.5"
 pymupdf = "^1.25.0"
 vllm = "^0.6.6.post1"
 spacy = "3.8.4"
-
-
+nltk = "^3.9.1"
+rarfile = "^4.2"
+statsmodels = "^0.14.5"
+seaborn = "^0.13.2"
+plotly = "^6.2.0"
+peft = "^0.17.1"
 
 [build-system]
 requires = ["poetry-core"]
