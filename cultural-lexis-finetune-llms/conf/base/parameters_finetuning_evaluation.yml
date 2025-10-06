@@ -1,0 +1,22 @@
+# This is a boilerplate parameters config generated for pipeline 'finetuning_evaluation'
+# using Kedro 0.19.9.
+#
+# Documentation for this file format can be found in "Parameters"
+# Link: https://docs.kedro.org/en/0.19.9/configuration/parameters.html
+
+finetune_eval_params:
+  top_k: 10 # 10, 20, 50 
+  model_save_dir: "/data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output"
+  if_lora: true
+  model_type: "llama3" # llama3, qwen
+  dataset_name: "swow_en" # swow_en, swow_zh
+  dataset_location: "data/03_primary/llm_swow_finetune_dataset"
+  split: "test"
+  word_freq_dict_fp: "data/02_intermediate/nested_${finetune_eval_params.dataset_name}.pkl"
+  batch_size: 3
+  mixed_precision: 'bf16'
+  dataset_num_proc: 8
+  max_length: 2048 # the max length the model can handle
+  want_few_shot_example: false
+  eval_metric_type: "wordties" # raw, wordties
+  fine_tune_class_lst: ['pure_ppo'] # ['pure_ppo', 'ftd_n_ppo'] 

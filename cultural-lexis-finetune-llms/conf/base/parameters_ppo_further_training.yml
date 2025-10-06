@@ -1,0 +1,14 @@
+# This is a boilerplate parameters config generated for pipeline 'ppo_further_training'
+# using Kedro 0.19.9.
+#
+# Documentation for this file format can be found in "Parameters"
+# Link: https://docs.kedro.org/en/0.19.9/configuration/parameters.html
+
+save_steps: 6
+save_total_limit: 1
+token_level_kl: true
+normalize_advantage: true
+cliprange: 0.2
+normalize_reward: true
+reward_clip_range: 10.0
+missing_eos_penalty: 0.5
