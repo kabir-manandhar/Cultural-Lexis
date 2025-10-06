@@ -1,0 +1,86 @@
+{
+    "swow_en": {
+        "script_url": "../../../data/03_primary/llm_swow_finetune_dataset",
+        "formatting": "alpaca",
+        "subset": "swow_en",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "swow_zh": {
+        "script_url": "../../../data/03_primary/llm_swow_finetune_dataset",
+        "formatting": "alpaca",
+        "subset": "swow_zh",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "swow_us": {
+        "script_url": "../../../data/03_primary/llm_swow_finetune_dataset",
+        "formatting": "alpaca",
+        "subset": "swow_us",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "swow_en_trl": {
+        "script_url": "../../../data/03_primary/llm_swow_finetune_dataset",
+        "formatting": "alpaca",
+        "subset": "swow_en",
+        "split": "trl",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "swow_zh_trl": {
+        "script_url": "../../../data/03_primary/llm_swow_finetune_dataset",
+        "formatting": "alpaca",
+        "subset": "swow_zh",
+        "split": "trl",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "swow_en_test": {
+        "script_url": "../../../data/03_primary/llm_swow_finetune_dataset",
+        "formatting": "alpaca",
+        "subset": "swow_en",
+        "split": "test",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "swow_zh_test": {
+        "script_url": "../../../data/03_primary/llm_swow_finetune_dataset",
+        "formatting": "alpaca",
+        "subset": "swow_zh",
+        "split": "test",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    }
+}

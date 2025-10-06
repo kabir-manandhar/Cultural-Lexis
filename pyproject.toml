@@ -5,13 +5,15 @@ description = "Large Language Models adapting towards Cultures"
 authors = ["Chunhua and Kabir"]
 license = "MIT License"
 readme = "README.md"
+packages = [{ include = "wvs_eval" },{ include = "model_analysis" }]
+
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"  # Instead of <4.0
 transformers = "^4.44.0"
 torch = "^2.4.0"
 pandas = "^2.2.2"
-accelerate = "^0.33.0"
+accelerate = ">=0.34,<1.1"
 polars = "^1.4.1"
 pyarrow = "^17.0.0"
 fastparquet = "^2024.5.0"
@@ -26,8 +28,35 @@ rarfile = "^4.2"
 statsmodels = "^0.14.5"
 seaborn = "^0.13.2"
 plotly = "^6.2.0"
-peft = "^0.17.1"
+peft = ">=0.11.1,<0.13"
+typer = "^0.19.2"
+numpy = ">=1.24,<2.0"
+onnx = "1.17.0"
+trl = ">=0.8.6,<0.10.0"
+scikit-learn = ">=1.5.1,<1.6.0"
+wandb = "^0.22.1"
+jsonlines = "^4.0.0"
+thefuzz = "^0.22.1"
+gradio = ">=4,<5"
+bitsandbytes = ">=0.39"
+deepspeed = ">=0.10,<0.15"
+
+[tool.poetry.group.train.dependencies]
+kedro = {version = "0.19.9", extras = ["jupyter"]}
+kedro-datasets = ">=3.0"
+kedro-viz = ">=6.7"
+scikit-learn = ">=1.5.1,<1.6.0"
+trl = ">=0.8.6,<0.9.7"
+gradio = ">=4,<5"
+wandb = "^0.22.1"
+jsonlines = "^4.0.0"
+thefuzz = "^0.22.1"
+numpy = "<2.0.0"
+onnx = "1.17.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+align = "wvs_eval.main:app"

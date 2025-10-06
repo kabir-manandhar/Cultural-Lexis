@@ -1,0 +1,21 @@
+# This is a boilerplate parameters config generated for pipeline 'ranking_problem_evaluation'
+# using Kedro 0.19.9.
+#
+# Documentation for this file format can be found in "Parameters"
+# Link: https://docs.kedro.org/en/0.19.9/configuration/parameters.html
+
+
+ranking_problem_eval_params:
+  data_dir: 'data/03_primary/openrlhf_dataset'
+  dataset_name_lst: ['swow_en', 'swow_zh']
+  split_name: 'test'
+  input_key: 'input'
+  label_key: 'label'
+
+  saved_model_dir: '/data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output'
+
+  model_type: "llama3" # llama3 or qwen 
+  fine_tune_class_lst: ['pure_ppo'] # ['raw', 'lora_combined', 'pure_ppo', 'ftd_n_ppo']
+
+  llama_raw: 'meta-llama/Meta-Llama-3.1-8B-Instruct'
+  qwen_raw: 'Qwen/Qwen2.5-7B-Instruct'

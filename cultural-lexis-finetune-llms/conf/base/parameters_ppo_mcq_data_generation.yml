@@ -1,0 +1,38 @@
+# This is a boilerplate parameters config generated for pipeline 'ppo_mcq_data_generation'
+# using Kedro 0.19.9.
+#
+# Documentation for this file format can be found in "Parameters"
+# Link: https://docs.kedro.org/en/0.19.9/configuration/parameters.html
+
+ppo_mcq_params:
+  num_choices: 5
+  choice_ratio: [0.3, 0.7] # hard negative, inter negative 
+  data_location: "data/03_primary/llm_swow_finetune_dataset"
+  split_name: "train"
+  top_k: 10 
+
+  dataset_name_lst: ["swow_us"] # ["swow_en", "swow_zh"]
+
+  model_params:
+    model_type: "llama3" # llama3, qwen
+    test_vanilla: True 
+    batch_size: 32
+    model_path:
+      swow_en: 
+        model_path: "/data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/${ppo_mcq_params.model_params.model_type}/swow_en/sft_lora"
+
+      swow_zh: 
+        model_path: "/data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/${ppo_mcq_params.model_params.model_type}/swow_zh/sft_lora"
+
+
+      vanilla:
+        llama3: "meta-llama/Meta-Llama-3.1-8B-Instruct"
+        qwen: "Qwen/Qwen2.5-7B-Instruct"
+
+ppo_ranking_params:
+  top_k: 10
+  data_location: "data/03_primary/llm_swow_finetune_dataset"
+  split_name: "train"
+
+  dataset_name_lst: ["swow_us"]
+  num_question_per_cue_word: 6 

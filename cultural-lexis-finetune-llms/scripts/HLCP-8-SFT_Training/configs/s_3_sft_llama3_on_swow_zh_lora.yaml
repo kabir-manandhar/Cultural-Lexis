@@ -1,0 +1,49 @@
+### model
+model_name_or_path: meta-llama/Meta-Llama-3.1-8B-Instruct
+trust_remote_code: true
+
+### method
+stage: sft
+do_train: true
+finetuning_type: lora
+lora_target: q_proj,v_proj
+lora_rank: 64
+lora_alpha: 256
+loraplus_lr_ratio: 16
+loraplus_lr_embedding: 1.0e-6
+deepspeed: scripts/HLCP-8-SFT_Training/configs/ds_z2_config.json  # choices: [ds_z0_config.json, ds_z2_config.json, ds_z3_config.json]
+
+### dataset
+dataset: swow_zh
+dataset_dir: scripts/HLCP-8-SFT_Training/configs
+template: llama3
+cutoff_len: 2048 # this is ok because the max length of the dataset is only around 1000
+overwrite_cache: true
+preprocessing_num_workers: 8
+
+### output
+output_dir: /data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/llama3/swow_zh/sft_lora # ! CHANGE the output_dir
+logging_steps: 10
+save_steps: 500
+plot_loss: true
+overwrite_output_dir: true
+
+### train
+per_device_train_batch_size: 18 # ! CAN INCREASE for LORA
+gradient_accumulation_steps: 2
+learning_rate: 1.0e-5
+num_train_epochs: 1.5
+lr_scheduler_type: cosine
+warmup_ratio: 0.1
+bf16: true
+ddp_timeout: 180000000
+
+### eval
+val_size: 800
+per_device_eval_batch_size: 4
+eval_strategy: steps
+eval_steps: 2000
+save_total_limit: 1
+
+report_to: wandb
+run_name: s_3_sft_llama3_on_swow_zh_lora

@@ -1,0 +1,1067 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Generating LLM Fine-tuning Dataset Alpaca Format huggingface Dataset \n",
+    "\n",
+    "Please check `data/03_primary/llm_swow_finetune_dataset/README.md` for more information."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'/data/gpfs/projects/punim2219/LM_with_SWOW/sukaih/cultural-lexis-finetune-llms'"
+      ]
+     },
+     "execution_count": 1,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "import jsonlines\n",
+    "import os \n",
+    "from pathlib import Path\n",
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import pickle\n",
+    "from tqdm.auto import tqdm\n",
+    "from glob import glob\n",
+    "os.environ['WORKING_DIR']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "swow_en_path = os.path.join(os.environ['WORKING_DIR'], 'data/01_raw/SWOW/swow.en.csv')\n",
+    "\n",
+    "swow_zh_path = os.path.join(os.environ['WORKING_DIR'], 'data/01_raw/SWOW/SWOWZH.R55.20230424.processed.copy.xlsx')\n",
+    "\n",
+    "swow_us_path = os.path.join(os.environ['WORKING_DIR'], 'data/01_raw/SWOW/SWOW-US.R100.20180827.csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "ename": "UnicodeDecodeError",
+     "evalue": "'utf-8' codec can't decode byte 0x92 in position 65146: invalid start byte",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+      "\u001b[0;31mUnicodeDecodeError\u001b[0m                        Traceback (most recent call last)",
+      "Cell \u001b[0;32mIn[3], line 5\u001b[0m\n\u001b[1;32m      3\u001b[0m swow_en_df \u001b[38;5;241m=\u001b[39m pd\u001b[38;5;241m.\u001b[39mread_csv(swow_en_path, names\u001b[38;5;241m=\u001b[39mcols, sep\u001b[38;5;241m=\u001b[39m\u001b[38;5;124m'\u001b[39m\u001b[38;5;130;01m\\t\u001b[39;00m\u001b[38;5;124m'\u001b[39m)\n\u001b[1;32m      4\u001b[0m swow_zh_df \u001b[38;5;241m=\u001b[39m pd\u001b[38;5;241m.\u001b[39mread_excel(swow_zh_path)\n\u001b[0;32m----> 5\u001b[0m swow_us_df \u001b[38;5;241m=\u001b[39m \u001b[43mpd\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mread_csv\u001b[49m\u001b[43m(\u001b[49m\u001b[43mswow_us_path\u001b[49m\u001b[43m)\u001b[49m\n",
+      "File \u001b[0;32m/data/gpfs/projects/punim2219/LM_with_SWOW/sukaih/lmswow/lib/python3.11/site-packages/pandas/io/parsers/readers.py:1026\u001b[0m, in \u001b[0;36mread_csv\u001b[0;34m(filepath_or_buffer, sep, delimiter, header, names, index_col, usecols, dtype, engine, converters, true_values, false_values, skipinitialspace, skiprows, skipfooter, nrows, na_values, keep_default_na, na_filter, verbose, skip_blank_lines, parse_dates, infer_datetime_format, keep_date_col, date_parser, date_format, dayfirst, cache_dates, iterator, chunksize, compression, thousands, decimal, lineterminator, quotechar, quoting, doublequote, escapechar, comment, encoding, encoding_errors, dialect, on_bad_lines, delim_whitespace, low_memory, memory_map, float_precision, storage_options, dtype_backend)\u001b[0m\n\u001b[1;32m   1013\u001b[0m kwds_defaults \u001b[38;5;241m=\u001b[39m _refine_defaults_read(\n\u001b[1;32m   1014\u001b[0m     dialect,\n\u001b[1;32m   1015\u001b[0m     delimiter,\n\u001b[0;32m   (...)\u001b[0m\n\u001b[1;32m   1022\u001b[0m     dtype_backend\u001b[38;5;241m=\u001b[39mdtype_backend,\n\u001b[1;32m   1023\u001b[0m )\n\u001b[1;32m   1024\u001b[0m kwds\u001b[38;5;241m.\u001b[39mupdate(kwds_defaults)\n\u001b[0;32m-> 1026\u001b[0m \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[43m_read\u001b[49m\u001b[43m(\u001b[49m\u001b[43mfilepath_or_buffer\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[43mkwds\u001b[49m\u001b[43m)\u001b[49m\n",
+      "File \u001b[0;32m/data/gpfs/projects/punim2219/LM_with_SWOW/sukaih/lmswow/lib/python3.11/site-packages/pandas/io/parsers/readers.py:620\u001b[0m, in \u001b[0;36m_read\u001b[0;34m(filepath_or_buffer, kwds)\u001b[0m\n\u001b[1;32m    617\u001b[0m _validate_names(kwds\u001b[38;5;241m.\u001b[39mget(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mnames\u001b[39m\u001b[38;5;124m\"\u001b[39m, \u001b[38;5;28;01mNone\u001b[39;00m))\n\u001b[1;32m    619\u001b[0m \u001b[38;5;66;03m# Create the parser.\u001b[39;00m\n\u001b[0;32m--> 620\u001b[0m parser \u001b[38;5;241m=\u001b[39m \u001b[43mTextFileReader\u001b[49m\u001b[43m(\u001b[49m\u001b[43mfilepath_or_buffer\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwds\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m    622\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m chunksize \u001b[38;5;129;01mor\u001b[39;00m iterator:\n\u001b[1;32m    623\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m parser\n",
+      "File \u001b[0;32m/data/gpfs/projects/punim2219/LM_with_SWOW/sukaih/lmswow/lib/python3.11/site-packages/pandas/io/parsers/readers.py:1620\u001b[0m, in \u001b[0;36mTextFileReader.__init__\u001b[0;34m(self, f, engine, **kwds)\u001b[0m\n\u001b[1;32m   1617\u001b[0m     \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39moptions[\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mhas_index_names\u001b[39m\u001b[38;5;124m\"\u001b[39m] \u001b[38;5;241m=\u001b[39m kwds[\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mhas_index_names\u001b[39m\u001b[38;5;124m\"\u001b[39m]\n\u001b[1;32m   1619\u001b[0m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mhandles: IOHandles \u001b[38;5;241m|\u001b[39m \u001b[38;5;28;01mNone\u001b[39;00m \u001b[38;5;241m=\u001b[39m \u001b[38;5;28;01mNone\u001b[39;00m\n\u001b[0;32m-> 1620\u001b[0m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39m_engine \u001b[38;5;241m=\u001b[39m \u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43m_make_engine\u001b[49m\u001b[43m(\u001b[49m\u001b[43mf\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mengine\u001b[49m\u001b[43m)\u001b[49m\n",
+      "File \u001b[0;32m/data/gpfs/projects/punim2219/LM_with_SWOW/sukaih/lmswow/lib/python3.11/site-packages/pandas/io/parsers/readers.py:1898\u001b[0m, in \u001b[0;36mTextFileReader._make_engine\u001b[0;34m(self, f, engine)\u001b[0m\n\u001b[1;32m   1895\u001b[0m     \u001b[38;5;28;01mraise\u001b[39;00m \u001b[38;5;167;01mValueError\u001b[39;00m(msg)\n\u001b[1;32m   1897\u001b[0m \u001b[38;5;28;01mtry\u001b[39;00m:\n\u001b[0;32m-> 1898\u001b[0m     \u001b[38;5;28;01mreturn\u001b[39;00m \u001b[43mmapping\u001b[49m\u001b[43m[\u001b[49m\u001b[43mengine\u001b[49m\u001b[43m]\u001b[49m\u001b[43m(\u001b[49m\u001b[43mf\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;28;43mself\u001b[39;49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43moptions\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m   1899\u001b[0m \u001b[38;5;28;01mexcept\u001b[39;00m \u001b[38;5;167;01mException\u001b[39;00m:\n\u001b[1;32m   1900\u001b[0m     \u001b[38;5;28;01mif\u001b[39;00m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39mhandles \u001b[38;5;129;01mis\u001b[39;00m \u001b[38;5;129;01mnot\u001b[39;00m \u001b[38;5;28;01mNone\u001b[39;00m:\n",
+      "File \u001b[0;32m/data/gpfs/projects/punim2219/LM_with_SWOW/sukaih/lmswow/lib/python3.11/site-packages/pandas/io/parsers/c_parser_wrapper.py:93\u001b[0m, in \u001b[0;36mCParserWrapper.__init__\u001b[0;34m(self, src, **kwds)\u001b[0m\n\u001b[1;32m     90\u001b[0m \u001b[38;5;28;01mif\u001b[39;00m kwds[\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mdtype_backend\u001b[39m\u001b[38;5;124m\"\u001b[39m] \u001b[38;5;241m==\u001b[39m \u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mpyarrow\u001b[39m\u001b[38;5;124m\"\u001b[39m:\n\u001b[1;32m     91\u001b[0m     \u001b[38;5;66;03m# Fail here loudly instead of in cython after reading\u001b[39;00m\n\u001b[1;32m     92\u001b[0m     import_optional_dependency(\u001b[38;5;124m\"\u001b[39m\u001b[38;5;124mpyarrow\u001b[39m\u001b[38;5;124m\"\u001b[39m)\n\u001b[0;32m---> 93\u001b[0m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39m_reader \u001b[38;5;241m=\u001b[39m \u001b[43mparsers\u001b[49m\u001b[38;5;241;43m.\u001b[39;49m\u001b[43mTextReader\u001b[49m\u001b[43m(\u001b[49m\u001b[43msrc\u001b[49m\u001b[43m,\u001b[49m\u001b[43m \u001b[49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[38;5;241;43m*\u001b[39;49m\u001b[43mkwds\u001b[49m\u001b[43m)\u001b[49m\n\u001b[1;32m     95\u001b[0m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39munnamed_cols \u001b[38;5;241m=\u001b[39m \u001b[38;5;28mself\u001b[39m\u001b[38;5;241m.\u001b[39m_reader\u001b[38;5;241m.\u001b[39munnamed_cols\n\u001b[1;32m     97\u001b[0m \u001b[38;5;66;03m# error: Cannot determine type of 'names'\u001b[39;00m\n",
+      "File \u001b[0;32mparsers.pyx:574\u001b[0m, in \u001b[0;36mpandas._libs.parsers.TextReader.__cinit__\u001b[0;34m()\u001b[0m\n",
+      "File \u001b[0;32mparsers.pyx:663\u001b[0m, in \u001b[0;36mpandas._libs.parsers.TextReader._get_header\u001b[0;34m()\u001b[0m\n",
+      "File \u001b[0;32mparsers.pyx:874\u001b[0m, in \u001b[0;36mpandas._libs.parsers.TextReader._tokenize_rows\u001b[0;34m()\u001b[0m\n",
+      "File \u001b[0;32mparsers.pyx:891\u001b[0m, in \u001b[0;36mpandas._libs.parsers.TextReader._check_tokenize_status\u001b[0;34m()\u001b[0m\n",
+      "File \u001b[0;32mparsers.pyx:2053\u001b[0m, in \u001b[0;36mpandas._libs.parsers.raise_parser_error\u001b[0;34m()\u001b[0m\n",
+      "\u001b[0;31mUnicodeDecodeError\u001b[0m: 'utf-8' codec can't decode byte 0x92 in position 65146: invalid start byte"
+     ]
+    }
+   ],
+   "source": [
+    "# en has no header so we need to add it as relation, cue, association and freq\n",
+    "cols = ['relation', 'cue', 'association', 'freq']\n",
+    "swow_en_df = pd.read_csv(swow_en_path, names=cols, sep='\\t')\n",
+    "swow_zh_df = pd.read_excel(swow_zh_path)\n",
+    "swow_us_df = pd.read_csv(swow_us_path)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "swow_us_df"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# a function that groupby cue and sort association by freq\n",
+    "\n",
+    "def group_sort(df):\n",
+    "    df = df.groupby('cue').apply(lambda x: x.sort_values('freq', ascending=False)).reset_index(drop=True)\n",
+    "    # get return a dictionary where the key is the cue and the value is the association list \n",
+    "    get = df.groupby('cue')['association'].apply(list).to_dict()\n",
+    "    return get"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_1678112/13522512.py:4: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.\n",
+      "  df = df.groupby('cue').apply(lambda x: x.sort_values('freq', ascending=False)).reset_index(drop=True)\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "length of en: 12271\n",
+      "length of zh: 10024\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_1678112/13522512.py:4: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.\n",
+      "  df = df.groupby('cue').apply(lambda x: x.sort_values('freq', ascending=False)).reset_index(drop=True)\n"
+     ]
+    }
+   ],
+   "source": [
+    "swow_en_dict = group_sort(swow_en_df)\n",
+    "swow_zh_dict = group_sort(swow_zh_df)\n",
+    "swow_us_dict = group_sort(swow_us_df)\n",
+    "\n",
+    "print('length of en:', len(swow_en_dict))\n",
+    "print('length of zh:', len(swow_zh_dict))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/tmp/ipykernel_1678112/1012719339.py:2: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.\n",
+      "  df = df.groupby('cue').apply(lambda x: x.sort_values('freq', ascending=False)).reset_index(drop=True)\n",
+      "/tmp/ipykernel_1678112/1012719339.py:7: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.\n",
+      "  nested_dict = df.groupby('cue').apply(create_nested_dict).to_dict()\n",
+      "/tmp/ipykernel_1678112/1012719339.py:2: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.\n",
+      "  df = df.groupby('cue').apply(lambda x: x.sort_values('freq', ascending=False)).reset_index(drop=True)\n",
+      "/tmp/ipykernel_1678112/1012719339.py:7: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.\n",
+      "  nested_dict = df.groupby('cue').apply(create_nested_dict).to_dict()\n"
+     ]
+    }
+   ],
+   "source": [
+    "def nested_group_sort(df):\n",
+    "    df = df.groupby('cue').apply(lambda x: x.sort_values('freq', ascending=False)).reset_index(drop=True)\n",
+    "    \n",
+    "    def create_nested_dict(group):\n",
+    "        return group.set_index('association')['freq'].to_dict()\n",
+    "    \n",
+    "    nested_dict = df.groupby('cue').apply(create_nested_dict).to_dict()\n",
+    "    return nested_dict\n",
+    "\n",
+    "swow_en_nested_dict = nested_group_sort(swow_en_df)\n",
+    "swow_zh_nested_dict = nested_group_sort(swow_zh_df)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# save the dictionary\n",
+    "nested_swow_en_path = os.path.join(os.environ['WORKING_DIR'], 'data/02_intermediate/nested_swow_en.pkl')\n",
+    "nested_swow_zh_path = os.path.join(os.environ['WORKING_DIR'], 'data/02_intermediate/nested_swow_zh.pkl')\n",
+    "\n",
+    "import pickle\n",
+    "with open(nested_swow_en_path, 'wb') as f:\n",
+    "    pickle.dump(swow_en_nested_dict, f)\n",
+    "    \n",
+    "with open(nested_swow_zh_path, 'wb') as f:\n",
+    "    pickle.dump(swow_zh_nested_dict, f)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "a450cf0365f5478f959569d3364437ad",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Expanding training data:   0%|          | 0/8589 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "24d6494d16ac4e27a3202621e91841fe",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Expanding training data:   0%|          | 0/7016 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "# we want to expand the training length to 1M \n",
+    "ratio_en = 1000000 // len(swow_en_dict)\n",
+    "\n",
+    "ratio_zh = 1000000 // len(swow_zh_dict)\n",
+    "\n",
+    "train_validate_test_ratio = [0.7, 0.2 ,0.1]\n",
+    "\n",
+    "def train_val_test_split(data_dict):\n",
+    "    # shuffle the data\n",
+    "    np.random.seed(42)\n",
+    "    keys = list(data_dict.keys())\n",
+    "    np.random.shuffle(keys)\n",
+    "    # split the data\n",
+    "    train_end = int(train_validate_test_ratio[0] * len(keys))\n",
+    "    val_end = int(train_validate_test_ratio[1] * len(keys)) + train_end\n",
+    "    train_keys = keys[:train_end]\n",
+    "    val_keys = keys[train_end:val_end]\n",
+    "    test_keys = keys[val_end:]\n",
+    "    # create the data\n",
+    "    train_data = {k: data_dict[k] for k in train_keys}\n",
+    "    val_data = {k: data_dict[k] for k in val_keys}\n",
+    "    test_data = {k: data_dict[k] for k in test_keys}\n",
+    "    return train_data, val_data, test_data\n",
+    "\n",
+    "swow_en_train, swow_en_val, swow_en_test = train_val_test_split(swow_en_dict)\n",
+    "swow_zh_train, swow_zh_val, swow_zh_test = train_val_test_split(swow_zh_dict)\n",
+    "\n",
+    "def expand_train_data(train_data_dict, ratio):\n",
+    "    # the rule is we randomly sample 70% of the list while keep the ordering the same\n",
+    "    sample_ratio = 0.7\n",
+    "    expanded_train_data_lst = [] \n",
+    "    for key, val_lst in tqdm(train_data_dict.items(), desc='Expanding training data'):\n",
+    "        cache_set = set()\n",
+    "        for _ in range(ratio):\n",
+    "            sample_size = int(sample_ratio * len(val_lst))\n",
+    "            if sample_size == 0:\n",
+    "                sample_size = 1\n",
+    "            sample_indices = np.random.choice(len(val_lst), sample_size, replace=False)\n",
+    "            # sort the indices\n",
+    "            sample_indices.sort()\n",
+    "            sample_lst = [val_lst[i] for i in sample_indices]\n",
+    "            tuple_sample = (key, sample_lst)\n",
+    "            hash_tuple = str(tuple_sample)\n",
+    "            if hash_tuple not in cache_set:\n",
+    "                cache_set.add(hash_tuple) # to avoid duplicate\n",
+    "                expanded_train_data_lst.append(tuple_sample)\n",
+    "            \n",
+    "    return expanded_train_data_lst # structure is [(key, [val_lst]), ...]\n",
+    "            \n",
+    "\n",
+    "expanded_en_train = expand_train_data(swow_en_train, ratio_en)\n",
+    "expanded_zh_train = expand_train_data(swow_zh_train, ratio_zh)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Length of expanded en train: 695709\n",
+      "Length of expanded zh train: 694584\n",
+      "Length of en val: 2454\n",
+      "Length of zh val: 2004\n",
+      "Length of en test: 1228\n",
+      "Length of zh test: 1004\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(\"Length of expanded en train:\", len(expanded_en_train))\n",
+    "print(\"Length of expanded zh train:\", len(expanded_zh_train))\n",
+    "\n",
+    "print(\"Length of en val:\", len(swow_en_val))\n",
+    "print(\"Length of zh val:\", len(swow_zh_val))\n",
+    "\n",
+    "print(\"Length of en test:\", len(swow_en_test))\n",
+    "print(\"Length of zh test:\", len(swow_zh_test))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def convert_dict_to_lst(data_dict):\n",
+    "    data_lst = []\n",
+    "    for key, val_lst in data_dict.items():\n",
+    "        data_lst.append((key, val_lst))\n",
+    "    return data_lst\n",
+    "\n",
+    "en_val = convert_dict_to_lst(swow_en_val)\n",
+    "zh_val = convert_dict_to_lst(swow_zh_val)\n",
+    "\n",
+    "en_test = convert_dict_to_lst(swow_en_test)\n",
+    "zh_test = convert_dict_to_lst(swow_zh_test)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Length of expanded en train: 695709\n",
+      "Length of expanded zh train: 694584\n",
+      "Length of en val: 2454\n",
+      "Length of zh val: 2004\n",
+      "Length of en test: 1228\n",
+      "Length of zh test: 1004\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(\"Length of expanded en train:\", len(expanded_en_train))\n",
+    "print(\"Length of expanded zh train:\", len(expanded_zh_train))\n",
+    "\n",
+    "print(\"Length of en val:\", len(en_val))\n",
+    "print(\"Length of zh val:\", len(zh_val))\n",
+    "\n",
+    "print(\"Length of en test:\", len(en_test))\n",
+    "print(\"Length of zh test:\", len(zh_test))\n",
+    "\n",
+    "# shuffle \n",
+    "from random import shuffle\n",
+    "shuffle(expanded_en_train)\n",
+    "shuffle(expanded_zh_train)\n",
+    "shuffle(en_val)\n",
+    "shuffle(zh_val)\n",
+    "shuffle(en_test)\n",
+    "shuffle(zh_test)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# temp save the data\n",
+    "\n",
+    "# temp_save_data_dict = {\n",
+    "#     \"en_train\": expanded_en_train,\n",
+    "#     \"zh_train\": expanded_zh_train,\n",
+    "#     \"en_val\": en_val,\n",
+    "#     \"zh_val\": zh_val,\n",
+    "#     \"en_test\": en_test,\n",
+    "#     \"zh_test\": zh_test\n",
+    "# }\n",
+    "\n",
+    "# temp_save_path = os.path.join(os.environ['WORKING_DIR'], 'data/01_raw/temp_save_data_dict.pkl')\n",
+    "\n",
+    "# with open(temp_save_path, 'wb') as f:\n",
+    "#     pickle.dump(temp_save_data_dict, f)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Converting to EN alpaca format\n",
+      "Train\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "a9de81bf433e4da38702bc66523f951b",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Converting to en alpaca format:   0%|          | 0/695709 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Val\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "f6a2c6989fba4828abd8a36b3bd50f3f",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Converting to en alpaca format:   0%|          | 0/2454 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Test\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "0c5c9c15183a4f5fb8e38a5cc072f1f5",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Converting to en alpaca format:   0%|          | 0/1228 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Converting to ZH alpaca format\n",
+      "Train\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "2018d70100ab46d594484796e71fe3fa",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Converting to zh alpaca format:   0%|          | 0/694584 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Val\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "6a39dc3ed3394d0faa35fc2b4386a9bd",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Converting to zh alpaca format:   0%|          | 0/2004 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Test\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "56ce86cb9f1d4d97a9aa9cd4616acfbe",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Converting to zh alpaca format:   0%|          | 0/1004 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "en_alpaca_format = {\n",
+    "    \"system\": \"You are a sophisticated language model designed to explore word associations comprehensively.\",\n",
+    "    \"instruction\": \"Given a cue word, your task is to generate a comprehensive list of words associated with the cue word. Aim to cover as many relevant contexts, uses, and meanings as possible without repeating similar concepts. List a target of {count_lower_bound} to {count_higher_bound} words that together provide a broad and insightful representation of all significant associations. Focus on revealing both common and unique aspects related to the cue word to ensure a balanced and thorough exploration of potential associations. Words should be distinct from each other. Your response shall only be the list of associated words. Do not generate words conditioned on the presence of other words but rather focus on the cue word itself.\",\n",
+    "    \"input\": \"cue word: {cue_word}\",\n",
+    "    \"output\": \"{association_words}\"\n",
+    "}\n",
+    "\n",
+    "zh_alpaca_format = {\n",
+    "    \"system\": \"您是一款专为全面探索词语关联而设计的高级语言模型。\",\n",
+    "    \"instruction\": \"给定一个提示词，你的任务是生成一个与该提示词相关联的全面词汇列表。目标是尽可能涵盖所有相关的语境、用法和含义，避免重复相似的概念。列出目标数量为 {count_lower_bound} 到 {count_higher_bound} 个词，这些词共同提供对所有重要关联的广泛而深刻的表示。专注于揭示与提示词相关的常见和独特的方面，以确保对潜在关联进行平衡而彻底的探索。词语应彼此不同。你的回答只能是相关联的词语列表。不要生成受其他词语存在影响的词语，而是专注于提示词本身。\",\n",
+    "    \"input\": \"提示词：{cue_word}\",\n",
+    "    \"output\": \"{association_words}\"\n",
+    "}\n",
+    "\n",
+    "\n",
+    "def convert_to_zh_alpaca_format(data_lst):\n",
+    "    alpaca_data_lst = []\n",
+    "    for key, val_lst in tqdm(data_lst, desc='Converting to zh alpaca format'):\n",
+    "        len_val_lst = len(val_lst)\n",
+    "        # get a lower bound and higher bound within range of +- 10% of the length, with noise being 3% of the length\n",
+    "        noise = int(0.03 * len_val_lst)\n",
+    "        # noise sign \n",
+    "        noise_sign = np.random.choice([-1, 1])\n",
+    "        lower_bound = len_val_lst - int(0.1 * len_val_lst) + noise_sign * noise\n",
+    "        higher_bound = len_val_lst + int(0.1 * len_val_lst) + noise_sign * noise\n",
+    "        lower_bound = max(1, lower_bound)\n",
+    "        higher_bound = max(1, higher_bound)\n",
+    "        lower_bound = int(lower_bound)\n",
+    "        higher_bound = int(higher_bound)\n",
+    "        # remove nan in val_lst\n",
+    "        val_lst = [val for val in val_lst if val == val]\n",
+    "        \n",
+    "        data = {\n",
+    "            \"instruction\": zh_alpaca_format['instruction'].format(count_lower_bound=lower_bound, count_higher_bound=higher_bound),\n",
+    "            \"input\": key,\n",
+    "            \"output\": \"， \".join(val_lst),\n",
+    "            \"system\": zh_alpaca_format['system']\n",
+    "        }\n",
+    "        alpaca_data_lst.append(data)\n",
+    "    return alpaca_data_lst\n",
+    "\n",
+    "def convert_to_en_alpaca_format(data_lst):\n",
+    "    alpaca_data_lst = []\n",
+    "    for key, val_lst in tqdm(data_lst, desc='Converting to en alpaca format'):\n",
+    "        len_val_lst = len(val_lst)\n",
+    "        # get a lower bound and higher bound within range of +- 10% of the length, with noise being 3% of the length\n",
+    "        noise = int(0.03 * len_val_lst)\n",
+    "        # noise sign \n",
+    "        noise_sign = np.random.choice([-1, 1])\n",
+    "        lower_bound = len_val_lst - int(0.1 * len_val_lst) + noise_sign * noise\n",
+    "        higher_bound = len_val_lst + int(0.1 * len_val_lst) + noise_sign * noise\n",
+    "        lower_bound = max(1, lower_bound)\n",
+    "        higher_bound = max(1, higher_bound)\n",
+    "        lower_bound = int(lower_bound)\n",
+    "        higher_bound = int(higher_bound)\n",
+    "        # remove nan in val_lst\n",
+    "        val_lst = [val for val in val_lst if val == val]\n",
+    "        \n",
+    "        data = {\n",
+    "            \"instruction\": en_alpaca_format['instruction'].format(count_lower_bound=lower_bound, count_higher_bound=higher_bound),\n",
+    "            \"input\": key,\n",
+    "            \"output\": \", \".join(val_lst),\n",
+    "            \"system\": en_alpaca_format['system']\n",
+    "        }\n",
+    "        alpaca_data_lst.append(data)\n",
+    "    return alpaca_data_lst\n",
+    "        \n",
+    "        \n",
+    "        \n",
+    "# do the conversion\n",
+    "# en\n",
+    "print('Converting to EN alpaca format')\n",
+    "# train \n",
+    "print('Train')\n",
+    "en_train_alpaca_data = convert_to_en_alpaca_format(expanded_en_train)\n",
+    "# val\n",
+    "print('Val')\n",
+    "en_val_alpaca_data = convert_to_en_alpaca_format(en_val)\n",
+    "# test\n",
+    "print('Test')\n",
+    "en_test_alpaca_data = convert_to_en_alpaca_format(en_test)\n",
+    "        \n",
+    "# zh\n",
+    "print('Converting to ZH alpaca format')\n",
+    "# train\n",
+    "print('Train')\n",
+    "zh_train_alpaca_data = convert_to_zh_alpaca_format(expanded_zh_train)\n",
+    "# val\n",
+    "print('Val')\n",
+    "zh_val_alpaca_data = convert_to_zh_alpaca_format(zh_val)\n",
+    "# test\n",
+    "print('Test')\n",
+    "zh_test_alpaca_data = convert_to_zh_alpaca_format(zh_test)\n",
+    "\n",
+    "        "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Saving EN data\n",
+      "Train\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "7646f1778d7441e8a23161fc5d81b06e",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Saving data for ain/chunk.jsonl:   0%|          | 0/695709 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Val\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "cfa52e5babde46fc92cb7e7cd01b3bce",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Saving data for trl/chunk.jsonl:   0%|          | 0/2454 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Test\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "ede99866b2ee41f69a3a582695f62b6a",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Saving data for est/chunk.jsonl:   0%|          | 0/1228 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Saving ZH data\n",
+      "Train\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "e1f865c87d9546d9a1355b9c2af42457",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Saving data for ain/chunk.jsonl:   0%|          | 0/694584 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Val\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "4509165f8a744dfba957d028b4d9bf13",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Saving data for trl/chunk.jsonl:   0%|          | 0/2004 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Test\n"
+     ]
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "70a84d4523fe4f8ca69e1af321a4760b",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Saving data for est/chunk.jsonl:   0%|          | 0/1004 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "entry_limit = 8000\n",
+    "\n",
+    "# we now save the data into jsonl format \n",
+    "\n",
+    "def save_data_to_jsonl(data_lst, save_path):\n",
+    "    count = 0\n",
+    "    fp_offset = 0\n",
+    "    pbar = tqdm(total=len(data_lst), desc=f'Saving data for {save_path[-15:]}')\n",
+    "    while count < len(data_lst):\n",
+    "        save_fp = save_path.replace('.jsonl', f'_{fp_offset}.jsonl')\n",
+    "        with jsonlines.open(save_fp, mode='w') as writer:\n",
+    "            for data in data_lst[count:count+entry_limit]:\n",
+    "                writer.write(data)\n",
+    "                \n",
+    "        count += entry_limit\n",
+    "        pbar.update(entry_limit)\n",
+    "        \n",
+    "        fp_offset += 1\n",
+    "        \n",
+    "        \n",
+    "# en\n",
+    "print('Saving EN data')\n",
+    "# train\n",
+    "print('Train')\n",
+    "train_en_fp = os.path.join(os.environ['WORKING_DIR'], 'data/03_primary/llm_swow_finetune_dataset/swow_en/train/chunk.jsonl')\n",
+    "Path(os.path.dirname(train_en_fp)).mkdir(parents=True, exist_ok=True)\n",
+    "save_data_to_jsonl(en_train_alpaca_data, train_en_fp)\n",
+    "\n",
+    "# val\n",
+    "print('Val')\n",
+    "val_en_fp = os.path.join(os.environ['WORKING_DIR'], 'data/03_primary/llm_swow_finetune_dataset/swow_en/trl/chunk.jsonl')\n",
+    "Path(os.path.dirname(val_en_fp)).mkdir(parents=True, exist_ok=True)\n",
+    "save_data_to_jsonl(en_val_alpaca_data, val_en_fp)\n",
+    "\n",
+    "# test\n",
+    "print('Test')\n",
+    "test_en_fp = os.path.join(os.environ['WORKING_DIR'], 'data/03_primary/llm_swow_finetune_dataset/swow_en/test/chunk.jsonl')\n",
+    "Path(os.path.dirname(test_en_fp)).mkdir(parents=True, exist_ok=True)\n",
+    "save_data_to_jsonl(en_test_alpaca_data, test_en_fp)\n",
+    "\n",
+    "# zh\n",
+    "print('Saving ZH data')\n",
+    "# train\n",
+    "print('Train')\n",
+    "train_zh_fp = os.path.join(os.environ['WORKING_DIR'], 'data/03_primary/llm_swow_finetune_dataset/swow_zh/train/chunk.jsonl')\n",
+    "Path(os.path.dirname(train_zh_fp)).mkdir(parents=True, exist_ok=True)\n",
+    "save_data_to_jsonl(zh_train_alpaca_data, train_zh_fp)\n",
+    "\n",
+    "# val\n",
+    "print('Val')\n",
+    "val_zh_fp = os.path.join(os.environ['WORKING_DIR'], 'data/03_primary/llm_swow_finetune_dataset/swow_zh/trl/chunk.jsonl')\n",
+    "Path(os.path.dirname(val_zh_fp)).mkdir(parents=True, exist_ok=True)\n",
+    "save_data_to_jsonl(zh_val_alpaca_data, val_zh_fp)\n",
+    "\n",
+    "# test\n",
+    "print('Test')\n",
+    "test_zh_fp = os.path.join(os.environ['WORKING_DIR'], 'data/03_primary/llm_swow_finetune_dataset/swow_zh/test/chunk.jsonl')\n",
+    "Path(os.path.dirname(test_zh_fp)).mkdir(parents=True, exist_ok=True)\n",
+    "save_data_to_jsonl(zh_test_alpaca_data, test_zh_fp)\n",
+    "\n",
+    "\n",
+    "\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Test the datasets library whether they can be loaded correctly\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import datasets"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "/home/sukaih/Extrastorage/HuaHuaProject/cultural-lexis-finetune-llms/../huggingface\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(os.environ.get('HF_HOME'))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "a881c2fe141d427080d832237e65498d",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Resolving data files:   0%|          | 0/87 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "254a5e41298a4e23a73a0dddbd994ea2",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Resolving data files:   0%|          | 0/87 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "# RMB remove cache first \n",
+    "\n",
+    "dataset_path = os.path.join(os.environ['WORKING_DIR'], 'data/03_primary/llm_swow_finetune_dataset')\n",
+    "\n",
+    "sample_data_config = \"swow_en\"\n",
+    "\n",
+    "sample_split = \"train\"\n",
+    "\n",
+    "sample_dataset = datasets.load_dataset(\n",
+    "    dataset_path, \n",
+    "    sample_data_config,\n",
+    "    split=sample_split\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "{'instruction': 'Given a cue word, your task is to generate a comprehensive list of words associated with the cue word. Aim to cover as many relevant contexts, uses, and meanings as possible without repeating similar concepts. List a target of 80 to 96 words that together provide a broad and insightful representation of all significant associations. Focus on revealing both common and unique aspects related to the cue word to ensure a balanced and thorough exploration of potential associations. Words should be distinct from each other. Your response shall only be the list of associated words. Do not generate words conditioned on the presence of other words but rather focus on the cue word itself.',\n",
+       " 'input': 'imp',\n",
+       " 'output': 'small, dwarf, sprite, mischievous, little, naughty, short, scamp, tyrone, goblin, red, game  of  thrones, cheeky, demon, green, funny, child, trickery, fiend, rascal, devilish, magic, puck, car, playful, troll, impish, person, throne, goofy, humor, syrian, sad, comical, whimsical, gargoyle, wings, efreet, if, perversity, mystical, fire, brat, sheepish, impertinent, bird, small  devil, tease, lord  of  misrule, weird, diabolic, video  game, what, blank, not  nice, irrelevant, pinch, impossible, ugly, jackass, midget, small  cute  child, prankster, cleverness, television  show, implies, home  stuck, superman, small  man, daemon, cherubic, fictional, myth, feeble, retarded, mean, unattractive, man, impractical, leprechaun, perverse, doom, fairy  tales, forest, silly, fantasy',\n",
+       " 'system': 'You are a sophisticated language model designed to explore word associations comprehensively.'}"
+      ]
+     },
+     "execution_count": 18,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sample_dataset[5]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "application/vnd.jupyter.widget-view+json": {
+       "model_id": "c49b31efe4074214bf9609bb146e66ce",
+       "version_major": 2,
+       "version_minor": 0
+      },
+      "text/plain": [
+       "Finding max length:   0%|          | 0/696 [00:00<?, ?it/s]"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "# import llama3 tokenizer and find the max length of for the cutoff_len \n",
+    "from transformers import AutoTokenizer\n",
+    "\n",
+    "tokenizer = AutoTokenizer.from_pretrained(\"meta-llama/Meta-Llama-3.1-8B-Instruct\")\n",
+    "tokenizer.pad_token = tokenizer.eos_token\n",
+    "\n",
+    "def find_max_length(dataset, tokenizer):\n",
+    "    # max_len = 0\n",
+    "    # for data in tqdm(dataset, desc='Finding max length'):\n",
+    "    #     input_text = data['instruction'] + ' ' + data['input'] + ' ' + data['output']\n",
+    "    #     input_len = len(tokenizer(input_text)['input_ids'])\n",
+    "    #     input_len = 2 * input_len # for the padding\n",
+    "    #     max_len = max(max_len, input_len)\n",
+    "        \n",
+    "    # alternatively, do batch encoding\n",
+    "    input_texts = [data['instruction'] + ' ' + data['input'] + ' ' + data['output'] for data in dataset]\n",
+    "    \n",
+    "    split_size = 1000\n",
+    "    \n",
+    "    input_texts = [input_texts[i:i+split_size] for i in range(0, len(input_texts), split_size)]\n",
+    "    \n",
+    "    length_lst = []\n",
+    "    \n",
+    "    for i in tqdm(range(len(input_texts)), desc='Finding max length'):\n",
+    "        input_lens = tokenizer(input_texts[i], padding=True, truncation=True, return_length=True)['length']\n",
+    "        length_lst.extend(input_lens)\n",
+    "        \n",
+    "    \n",
+    "    return length_lst\n",
+    "    \n",
+    "    \n",
+    "\n",
+    "length_lst = find_max_length(sample_dataset, tokenizer)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "625"
+      ]
+     },
+     "execution_count": 20,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "max(length_lst)\n",
+    "# 510 for swow_zh\n",
+    "# 610 for swow_en\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "131072"
+      ]
+     },
+     "execution_count": 21,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "tokenizer.model_max_length"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.11"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
