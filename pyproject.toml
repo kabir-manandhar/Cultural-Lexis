@@ -5,7 +5,7 @@ description = "Large Language Models adapting towards Cultures"
 authors = ["Chunhua and Kabir"]
 license = "MIT License"
 readme = "README.md"
-packages = [{ include = "language_modelling" }]
+packages = [{ include = "wvs_eval" },{ include = "model_analysis" }]
 
 
 [tool.poetry.dependencies]
@@ -36,4 +36,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-align = "language_modelling.main:app"
+align = "wvs_eval.main:app"

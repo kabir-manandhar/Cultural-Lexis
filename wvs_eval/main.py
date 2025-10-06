@@ -7,18 +7,23 @@ from typing import List, Optional
 
 import pandas as pd
 import typer
+from model_analysis.post.cli import app as post_app
+
 
 # keep these env flags quiet for vLLM
 os.environ["VLLM_DISABLE_USAGE_STATS"] = "1"
 os.environ["VLLM_REPORT_USAGE"] = "false"
 
 # local imports
-from language_modelling.config.hf_auth import get_hf_auth_token
-from language_modelling.src.q_and_a import answer_question
-from language_modelling.src.model_utils import load_llm, clear_gpu_memory
+from wvs_eval.config.hf_auth import get_hf_auth_token
+from wvs_eval.src.q_and_a import answer_question
+from wvs_eval.src.model_utils import load_llm, clear_gpu_memory
 
 
 app = typer.Typer(help="WVS evaluation runner (vLLM + constrained decoding)")
+
+app.add_typer(post_app, name="post", help="Post-analysis: affect/concreteness, hypothesis tests, tension set")
+
 
 
 # ---------- helpers ----------
