@@ -46,3 +46,7 @@ The results are separated based on SWOW English and SWOW Chinese. I have saved t
 CSV files are also available in the same directory as `swow_{language}_results.csv`.
 
 For a more user-friendly HTML visualisation, I have also saved the results as `swow_{language}_results.html` in the same directory.
+
+## process the results 
+Kabir faced some issue with parsing the results, so we have `preprocess_llm_output_into_words.ipynb` to help with the parsing. After getting the `swow_{language}_results.pkl`, you can run the notebook to get the parsed results and get `swow_{language}_results_processed.pkl` which is a dictionary with the following structure:
+

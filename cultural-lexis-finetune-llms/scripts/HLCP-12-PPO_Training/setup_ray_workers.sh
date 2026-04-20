@@ -5,7 +5,7 @@ echo "My IP is $my_ip"
 
 bash scripts/HLCP-12-PPO_Training/run_cluster.sh \
     vllm/vllm-openai \
-    172.26.93.168 \
+    172.26.93.141 \
     --worker \
     /data/projects/punim0478/sukaih/huggingface \
     -e VLLM_HOST_IP=${my_ip}

@@ -35,6 +35,211 @@
             "system": "system"
         }
     },
+    "swow_mimic_us_seed_43": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "participant_swow_collection_us_seed_43",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "swow_mimic_us_seed_43_25_percent": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "participant_swow_collection_us_seed_43_25_percent",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "swow_mimic_us_seed_44": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "participant_swow_collection_us_seed_44",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "swow_mimic_us_seed_45": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "participant_swow_collection_us_seed_45",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "swow_mimic_us_seed_46": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "participant_swow_collection_us_seed_46",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "swow_mimic_us_seed_47": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "participant_swow_collection_us_seed_47",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "isolated_five_percent_swow_mimic_us_seed_43": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "isolated_5_percent_participant_swow_collection_us_seed_43",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "isolated_five_percent_swow_mimic_us_seed_44": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "isolated_5_percent_participant_swow_collection_us_seed_44",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "isolated_five_percent_swow_mimic_us_seed_45": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "isolated_5_percent_participant_swow_collection_us_seed_45",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "isolated_five_percent_swow_mimic_us_seed_46": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "isolated_5_percent_participant_swow_collection_us_seed_46",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "isolated_five_percent_swow_mimic_us_seed_47": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "isolated_5_percent_participant_swow_collection_us_seed_47",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "isolated_ten_percent_swow_mimic_us_seed_43": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "isolated_10_percent_participant_swow_collection_us_seed_43",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "isolated_ten_percent_swow_mimic_us_seed_44": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "isolated_10_percent_participant_swow_collection_us_seed_44",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "isolated_ten_percent_swow_mimic_us_seed_45": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "isolated_10_percent_participant_swow_collection_us_seed_45",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "isolated_ten_percent_swow_mimic_us_seed_46": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "isolated_10_percent_participant_swow_collection_us_seed_46",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "isolated_ten_percent_swow_mimic_us_seed_47": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "isolated_10_percent_participant_swow_collection_us_seed_47",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+    "seed_cue_participant_swow_collection_us": {
+        "script_url": "../../../data/03_primary/participant_swow_collection_us",
+        "formatting": "alpaca",
+        "subset": "seed_cue_participant_swow_collection_us",
+        "split": "train",
+        "columns":{
+            "prompt": "instruction",
+            "query": "input",
+            "response": "output",
+            "system": "system"
+        }
+    },
+
     "swow_en_trl": {
         "script_url": "../../../data/03_primary/llm_swow_finetune_dataset",
         "formatting": "alpaca",

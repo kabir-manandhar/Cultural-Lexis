@@ -7,7 +7,8 @@
 
 ranking_problem_eval_params:
   data_dir: 'data/03_primary/openrlhf_dataset'
-  dataset_name_lst: ['swow_en', 'swow_zh']
+  # dataset_name_lst: ['swow_en', 'swow_zh']
+  dataset_name_lst: ['swow_zh']
   split_name: 'test'
   input_key: 'input'
   label_key: 'label'

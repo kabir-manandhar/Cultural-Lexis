@@ -1,0 +1,29 @@
+[project]
+name = "sft-env"
+version = "0.1.0"
+description = "Isolated uv environment for SFT with LlamaFactory"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+  "llamafactory",
+  "torch==2.6.0",
+  "torchvision==0.21.0",
+  "torchaudio==2.6.0",
+]
+
+[tool.uv.sources]
+llamafactory = { git = "https://github.com/hiyouga/LlamaFactory.git" }
+torch = [
+  { index = "pytorch-cu124", marker = "sys_platform == 'linux'" },
+]
+torchvision = [
+  { index = "pytorch-cu124", marker = "sys_platform == 'linux'" },
+]
+torchaudio = [
+  { index = "pytorch-cu124", marker = "sys_platform == 'linux'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu124"
+url = "https://download.pytorch.org/whl/cu124"
+explicit = true

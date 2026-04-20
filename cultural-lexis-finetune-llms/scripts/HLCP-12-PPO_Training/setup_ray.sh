@@ -13,6 +13,9 @@
 # ssh -fNT -L 8001:localhost:8001 spartan-gpgpu169
 # ssh -fNT -L 8002:localhost:8002 spartan-gpgpu169
 
+# ssh -fNT -L 8005:localhost:8005 spartan-gpgpu070
+# ssh -fNT -L 8011:localhost:8011 spartan-gpgpu070
+
 # http://127.0.0.1:9999/tree?token=8233eba6014cc2a47180d6037e4adea0f7f2d71fab167181
 
 # if want to remove the port forwarding
@@ -27,7 +30,7 @@
 
 bash scripts/HLCP-12-PPO_Training/run_cluster.sh \
         vllm/vllm-openai \
-        172.26.93.168 \
+        172.26.93.141 \
         --head \
         /data/projects/punim0478/sukaih/huggingface \
-        -e VLLM_HOST_IP=172.26.93.168
+        -e VLLM_HOST_IP=172.26.93.141

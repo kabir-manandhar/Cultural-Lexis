@@ -1,0 +1,32 @@
+ipython>=8.10
+jupyterlab>=3.0
+kedro-datasets>=3.0
+kedro-viz>=6.7.0
+kedro[jupyter]~=0.19.9
+notebook
+scikit-learn~=1.5.1
+
+
+vllm==0.7.2
+
+transformers>=4.41.2,<=4.46.1
+datasets>=2.16.0,<=3.1.0
+accelerate>=0.34.0,<=1.0.1
+peft>=0.11.1,<=0.12.0
+trl>=0.8.6,<=0.9.6
+gradio>=4.0.0,<5.0.0
+pandas>=2.0.0
+numpy<2.0.0
+onnx==1.17.0
+
+deepspeed>=0.10.0,<=0.14.4
+bitsandbytes>=0.39.0
+# conda install nvidia/label/cuda-12.4.1::cuda-nvcc
+# conda install nvidia/label/cuda-12.4.1::cuda-toolkit
+# conda install pytorch torchvision torchaudio pytorch-cuda=12.4 -c pytorch -c nvidia
+# flash-attn==2.6.3 # install it after installing torch
+# vllm==0.5.0
+
+wandb
+jsonlines
+thefuzz

@@ -35,7 +35,7 @@ PPO_FLAGS="--ref_num_nodes 1 \
     --flash_attn \
     --adam_offload \
     --vllm_sync_backend nccl \
-    --save_steps 400 \
+    --save_steps 1500 \
     --save_hf_ckpt \
     --ckpt_path ${pretrain_model_dir}/ckpt/ \
     --gradient_checkpointing"

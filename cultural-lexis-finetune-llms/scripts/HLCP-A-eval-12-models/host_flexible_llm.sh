@@ -33,7 +33,7 @@ if [[ "$arg1" == "1" ]]; then   # 1 is - Qwen vanilla for zh   :8001
   --max-model-len 8192 \
   --port 8001 
 
-elif [[ "$arg1" == "2" ]]; then # 2 is - Qwen vanilla for en   :8002
+elif [[ "$arg1" == "2" ]]; then # 2 is - Qwen vanilla for us   :8002
   python -m vllm.entrypoints.openai.api_server \
   --model Qwen/Qwen2.5-7B-Instruct  \
   --tensor-parallel-size 1 \
@@ -48,14 +48,14 @@ elif [[ "$arg1" == "3" ]]; then # 3 is - Qwen SWOW zh          :8003
   --max-model-len 8192 \
   --port 8003 \
   --served-model-name sukai/qwen_swow_zh 
-elif [[ "$arg1" == "4" ]]; then # 4 is - Qwen SWOW en          :8004
+elif [[ "$arg1" == "4" ]]; then # 4 is - Qwen SWOW us          :8004
   python -m vllm.entrypoints.openai.api_server \
-  --model /data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/qwen/swow_en/lora_combined  \
+  --model /data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/qwen/swow_us/lora_combined  \
   --tensor-parallel-size 1 \
   --distributed-executor-backend ray \
   --max-model-len 8192 \
   --port 8004 \
-  --served-model-name sukai/qwen_swow_en
+  --served-model-name sukai/qwen_swow_us
 elif [[ "$arg1" == "5" ]]; then # 5 is - Qwen PPO zh           :8005
   python -m vllm.entrypoints.openai.api_server \
   --model /data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/qwen/swow_zh/pure_ppo  \
@@ -65,14 +65,14 @@ elif [[ "$arg1" == "5" ]]; then # 5 is - Qwen PPO zh           :8005
   --port 8005 \
   --served-model-name sukai/qwen_ppo_zh \
   --gpu_memory_utilization 0.46
-elif [[ "$arg1" == "6" ]]; then # 6 is - Qwen PPO en           :8006
+elif [[ "$arg1" == "6" ]]; then # 6 is - Qwen PPO us           :8006
   python -m vllm.entrypoints.openai.api_server \
-  --model /data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/qwen/swow_en/pure_ppo  \
+  --model /data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/qwen/swow_us/pure_ppo  \
   --tensor-parallel-size 1 \
   --distributed-executor-backend ray \
   --max-model-len 8192 \
   --port 8006 \
-  --served-model-name sukai/qwen_ppo_en \
+  --served-model-name sukai/qwen_ppo_us \
   --gpu_memory_utilization 0.46
 elif [[ "$arg1" == "7" ]]; then # 7 is - Llama vanilla for zh  :8007
   python -m vllm.entrypoints.openai.api_server \
@@ -82,7 +82,7 @@ elif [[ "$arg1" == "7" ]]; then # 7 is - Llama vanilla for zh  :8007
   --max-model-len 8192 \
   --port 8007 \
   --gpu_memory_utilization 0.46
-elif [[ "$arg1" == "8" ]]; then # 8 is - Llama vanilla for en  :8008
+elif [[ "$arg1" == "8" ]]; then # 8 is - Llama vanilla for us  :8008
   python -m vllm.entrypoints.openai.api_server \
   --model meta-llama/Meta-Llama-3.1-8B-Instruct  \
   --tensor-parallel-size 1 \
@@ -99,14 +99,14 @@ elif [[ "$arg1" == "9" ]]; then # 9 is - Llama SWOW zh         :8009
   --port 8009 \
   --served-model-name sukai/llama_swow_zh \
   --gpu_memory_utilization 0.46
-elif [[ "$arg1" == "10" ]]; then # 10 is - Llama SWOW en         :8010
+elif [[ "$arg1" == "10" ]]; then # 10 is - Llama SWOW us         :8010
   python -m vllm.entrypoints.openai.api_server \
-  --model /data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/llama3/swow_en/lora_combined  \
+  --model /data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/llama3/swow_us/lora_combined  \
   --tensor-parallel-size 1 \
   --distributed-executor-backend ray \
   --max-model-len 8192 \
   --port 8010 \
-  --served-model-name sukai/llama_swow_en \
+  --served-model-name sukai/llama_swow_us \
   --gpu_memory_utilization 0.46
 elif [[ "$arg1" == "11" ]]; then # 11 is - Llama PPO zh          :8011
   python -m vllm.entrypoints.openai.api_server \
@@ -117,14 +117,14 @@ elif [[ "$arg1" == "11" ]]; then # 11 is - Llama PPO zh          :8011
   --port 8011 \
   --served-model-name sukai/llama_ppo_zh \
   --gpu_memory_utilization 0.46
-elif [[ "$arg1" == "12" ]]; then # 12 is - Llama PPO en          :8012
+elif [[ "$arg1" == "12" ]]; then # 12 is - Llama PPO us          :8012
   python -m vllm.entrypoints.openai.api_server \
-  --model /data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/llama3/swow_en/pure_ppo  \
+  --model /data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/llama3/swow_us/pure_ppo  \
   --tensor-parallel-size 1 \
   --distributed-executor-backend ray \
   --max-model-len 8192 \
   --port 8012 \
-  --served-model-name sukai/llama_ppo_en \
+  --served-model-name sukai/llama_ppo_us \
   --gpu_memory_utilization 0.46
 
 

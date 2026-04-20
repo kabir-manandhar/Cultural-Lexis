@@ -5,9 +5,9 @@ set -x
 
 
 working_dir=/data/gpfs/projects/punim2219/LM_with_SWOW/sukaih/cultural-lexis-finetune-llms
-pretrain_model_dir=/data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/llama3/swow_us
+pretrain_model_dir=/data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/qwen/swow_us
 output_tag=pure_ppo
-pretrain_model=Qwen/Qwen2.5-7B-Instruct
+pretrain_model=/data/projects/punim0478/sukaih/Sukai_Project/huahua/data/07_model_output/qwen/swow_us/ckpt/global_step400_hf
 data_info=/data/03_primary/openrlhf_dataset/swow_us
 
 source scripts/HLCP-12-PPO_Training/reuse_configs.sh
@@ -27,7 +27,7 @@ ray job submit --address="http://127.0.0.1:8265" \
    ${PPO_FLAGS} \
    --use_wandb e306c9c2aee5b8224dcfeaab47393338739db3fe \
    --wandb_project llamafactory \
-   --wandb_run_name ${output_tag}${pretrain_model}_swow_us
+   --wandb_run_name ${output_tag}${pretrain_model}_swow_us 
 
 
    # --packing_samples \
